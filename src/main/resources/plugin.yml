@@ -1,0 +1,11 @@
+name: DubiousDevices
+version: @version@
+main: com.drathonix.dubiousdevices.DubiousDevices
+api-version: 1.18
+prefix: DD
+loadbefore: []
+depend: [Viciouslibkit]
+softdepend: []
+authors: [Drathonix]
+description: Dubious Devices
+

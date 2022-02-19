@@ -1,0 +1,323 @@
+package com.drathonix.dubiousdevices.devices.overworld.crusher;
+
+import com.drathonix.dubiousdevices.DubiousDevices;
+import com.drathonix.dubiousdevices.data.InventoryWrapperChunkHandler;
+import com.drathonix.dubiousdevices.devices.MaterialOnlyBlockInstance;
+import com.drathonix.dubiousdevices.devices.SolidBlockInstance;
+import com.drathonix.dubiousdevices.event.EInventoryUpdateStatus;
+import com.drathonix.dubiousdevices.event.InventoryWrapper;
+import com.drathonix.dubiousdevices.interfaces.INotifiable;
+import com.drathonix.dubiousdevices.interfaces.INotifier;
+import com.drathonix.dubiousdevices.util.NMSHelper;
+import com.drathonix.dubiousdevices.registry.RecipeHandlers;
+import com.drathonix.dubiousdevices.util.DubiousUtil;
+import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
+import com.vicious.viciouslibkit.block.BlockInstance;
+import com.vicious.viciouslibkit.block.BlockTemplate;
+import com.vicious.viciouslibkit.block.MultipleBlockInstances;
+import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockChunkDataHandler;
+import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
+import com.vicious.viciouslibkit.data.worldstorage.PluginWorldData;
+import com.vicious.viciouslibkit.inventory.InventoryHelper;
+import com.vicious.viciouslibkit.services.multiblock.TickableMultiBlock;
+import com.vicious.viciouslibkit.util.ChunkPos;
+import com.vicious.viciouslibkit.util.map.ItemStackMap;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.Container;
+import org.bukkit.block.data.type.Piston;
+import org.bukkit.block.data.type.Slab;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
+/*
+TODO: Create a generic machine multiblock.
+ */
+public class Crusher extends TickableMultiBlock implements INotifiable<EInventoryUpdateStatus> {
+    //Optimize recipe handling by only checking the recipe on inventory updates.
+    private boolean checkRecipe = true;
+    private List<ItemStack> storedOutputs = new ArrayList<>();
+    private List<ItemStack> storedInputs;
+    //Northfacing
+    private static final SQLVector3i iol = new SQLVector3i(-2,-3,0);
+    private static SQLVector3i io1;
+    private static SQLVector3i io2;
+
+    public int timer = 0;
+    public int processTime = 20;
+
+    public CrusherRecipe recipe = null;
+    public Inventory inputs;
+    public Inventory outputs;
+
+    public Crusher(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
+        super(mbType, w, l, dir, flipped, id);
+    }
+
+    public Crusher(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
+        super(type, w, id, cpos);
+    }
+
+
+    @Override
+    protected void invalidate(MultiBlockChunkDataHandler dat) {
+        InventoryWrapper iw = getInvWrapper(io1);
+        if(iw != null) iw.stopListening(this);
+        iw = getInvWrapper(io2);
+        if(iw != null) iw.stopListening(this);
+        super.invalidate(dat);
+    }
+    @Override
+    public void validate() {
+        super.validate();
+        io1 = DubiousUtil.orientate(iol,facing.value(),flipped.value());
+        io2 = DubiousUtil.orientate(iol,facing.value(),!flipped.value());
+        io1 = new SQLVector3i(xyz.value().x + io1.x,xyz.value().y + io1.y,xyz.value().z + io1.z);
+        io2 = new SQLVector3i(xyz.value().x + io2.x,xyz.value().y + io2.y,xyz.value().z + io2.z);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE,()->{
+            getInvWrapper(io1).listen(this);
+            getInvWrapper(io2).listen(this);
+        },1);
+    }
+
+    public InventoryWrapper getInvWrapper(SQLVector3i p){
+        InventoryWrapperChunkHandler handler = PluginWorldData.getChunkDataHandler(world,ChunkPos.fromBlockPos(p), InventoryWrapperChunkHandler.class);
+        return handler.getOrCreateWrapper(world,p);
+    }
+    @Override
+    public void tick() {
+        super.tick();
+        //Logic. No recipe, check the input inventory. Still no recipe, stop ticking.
+        if(timer == 0){
+            initInputInv();
+            if(inputs != null) {
+                if (!checkRecipe(mapInventory(inputs))) {
+                    removeFromTicker();
+                    return;
+                }
+            }
+        }
+        process();
+    }
+
+    private void process() {
+        if(timer == 0){
+            try {
+                SQLVector3i vec = xyz.value();
+                Block piston = world.getBlockAt(vec.x, vec.y, vec.z);
+                Piston pdat = (Piston) piston.getBlockData();
+                NMSHelper.setExtended(piston,true);
+                pdat.setExtended(true);
+                piston.setBlockData(pdat);
+                input();
+            } catch (Exception e){
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        if(timer >= processTime){
+            if(output()){
+                timer = 0;
+                SQLVector3i vec = xyz.value();
+                Block piston = world.getBlockAt(vec.x,vec.y,vec.z);
+                Piston pdat = (Piston) piston.getBlockData();
+                pdat.setExtended(false);
+                piston.setBlockData(pdat);
+            }
+        }
+        else timer++;
+    }
+    private void input(){
+        initInputInv();
+        for (ItemStack input : recipe.getInputs()) {
+            inputs.removeItem(input);
+        }
+        storedInputs = recipe.cloneInputs();
+    }
+    private boolean output(){
+        initOutputInv();
+        if(storedOutputs.size() == 0){
+            storedOutputs = recipe.cloneOutputs();
+        }
+        InventoryHelper.moveFrom(outputs,storedOutputs);
+        return storedOutputs.size() == 0;
+    }
+
+    public boolean checkRecipe(ItemStackMap inputs){
+        if(!checkRecipe) return true;
+        if(recipe != null && !recipe.matches(inputs)) resetRecipe();
+        if (!getRecipe(inputs)) {
+            return false;
+        } else {
+            checkRecipe = false;
+            return true;
+        }
+    }
+    public boolean getRecipe(ItemStackMap inputs){
+        recipe = RecipeHandlers.CRUSHER.getRecipe(inputs);
+        return recipe != null;
+    }
+    public void requireRecipeCheck(){
+        checkRecipe = true;
+    }
+    public void resetRecipe(){
+        requireRecipeCheck();
+        recipe = null;
+    }
+
+    @Override
+    public boolean tickOnInit() {
+        return true;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        return ((Crusher) o).ID.equals(this.ID);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ID);
+    }
+    private void initInputInv(){
+        if(inputs == null){
+            Inventory expected = getInventory(io1);
+            ItemStackMap invmap = mapInventory(expected);
+            requireRecipeCheck();
+            if(checkRecipe(invmap)){
+                inputs = expected;
+                outputs = getInventory(io2);
+            }
+            else{
+                expected = getInventory(io2);
+                invmap = mapInventory(expected);
+                requireRecipeCheck();
+                if(checkRecipe(invmap)){
+                    inputs = expected;
+                    outputs = getInventory(io1);
+                }
+            }
+        }
+        else{
+            inputs = getInventory(inputs.getLocation());
+        }
+    }
+    private void initOutputInv() {
+        if(outputs == null){
+            initInputInv();
+        }
+        else{
+            outputs = getInventory(outputs.getLocation());
+        }
+    }
+    private static ItemStackMap mapInventory(Inventory inv){
+        ItemStackMap map = new ItemStackMap();
+        for (ItemStack stack : inv.getStorageContents()) {
+            if(stack == null) continue;
+            map.add(stack);
+        }
+        return map;
+    }
+    private Inventory getInventory(SQLVector3i p) {
+        Block b = world.getBlockAt(p.x,p.y,p.z);
+        if(b.getState() instanceof Container){
+            return ((Container) b.getState()).getInventory();
+        } else return null;
+    }
+    private Inventory getInventory(Location l) {
+        Block b = world.getBlockAt(l.getBlockX(),l.getBlockY(),l.getBlockZ());
+        if(b.getState() instanceof Container){
+            return ((Container) b.getState()).getInventory();
+        } else return null;
+    }
+
+    public static BlockTemplate template(){
+        BlockInstance n = null;
+        BlockInstance a = BlockInstance.AIR;
+        BlockInstance b = new MultipleBlockInstances()
+                .add(new MaterialOnlyBlockInstance(Material.DEEPSLATE))
+                .add(new MaterialOnlyBlockInstance(Material.DEEPSLATE_BRICKS))
+                .add(new MaterialOnlyBlockInstance(Material.DEEPSLATE_TILES))
+                .add(new MaterialOnlyBlockInstance(Material.COBBLED_DEEPSLATE))
+                .add(new MaterialOnlyBlockInstance(Material.CHISELED_DEEPSLATE))
+                .add(new MaterialOnlyBlockInstance(Material.POLISHED_DEEPSLATE))
+                .add(new MaterialOnlyBlockInstance(Material.CRACKED_DEEPSLATE_BRICKS))
+                .add(new MaterialOnlyBlockInstance(Material.CRACKED_DEEPSLATE_TILES));
+        BlockInstance c = new MultipleBlockInstances()
+                .add(new BlockInstance(Material.DEEPSLATE_BRICK_SLAB).slabType(Slab.Type.BOTTOM))
+                .add(new BlockInstance(Material.DEEPSLATE_TILE_SLAB).slabType(Slab.Type.BOTTOM))
+                .add(new BlockInstance(Material.POLISHED_DEEPSLATE_SLAB).slabType(Slab.Type.BOTTOM))
+                .add(new BlockInstance(Material.COBBLED_DEEPSLATE_SLAB).slabType(Slab.Type.BOTTOM))
+                ;
+        BlockInstance d = new MultipleBlockInstances()
+                .add(new BlockInstance(Material.DEEPSLATE_BRICK_SLAB).slabType(Slab.Type.TOP))
+                .add(new BlockInstance(Material.DEEPSLATE_TILE_SLAB).slabType(Slab.Type.TOP))
+                .add(new BlockInstance(Material.POLISHED_DEEPSLATE_SLAB).slabType(Slab.Type.TOP))
+                .add(new BlockInstance(Material.COBBLED_DEEPSLATE_SLAB).slabType(Slab.Type.TOP))
+                ;
+        BlockInstance i = new MultipleBlockInstances()
+                .add(new BlockInstance(Material.HOPPER))
+                .add(new BlockInstance(Material.TRAPPED_CHEST))
+                .add(new BlockInstance(Material.BARREL))
+                .add(new BlockInstance(Material.CHEST));
+        BlockInstance f = new MultipleBlockInstances()
+                .add(new BlockInstance(Material.COPPER_BLOCK))
+                .add(new BlockInstance(Material.WEATHERED_COPPER))
+                .add(new BlockInstance(Material.EXPOSED_COPPER))
+                .add(new BlockInstance(Material.OXIDIZED_COPPER))
+                .add(new BlockInstance(Material.CUT_COPPER))
+                .add(new BlockInstance(Material.WEATHERED_CUT_COPPER))
+                .add(new BlockInstance(Material.EXPOSED_CUT_COPPER))
+                .add(new BlockInstance(Material.OXIDIZED_CUT_COPPER))
+                .add(new BlockInstance(Material.WAXED_COPPER_BLOCK))
+                .add(new BlockInstance(Material.WAXED_WEATHERED_COPPER))
+                .add(new BlockInstance(Material.WAXED_EXPOSED_COPPER))
+                .add(new BlockInstance(Material.WAXED_OXIDIZED_COPPER))
+                .add(new BlockInstance(Material.WAXED_CUT_COPPER))
+                .add(new BlockInstance(Material.WAXED_WEATHERED_CUT_COPPER))
+                .add(new BlockInstance(Material.WAXED_EXPOSED_CUT_COPPER))
+                .add(new BlockInstance(Material.WAXED_OXIDIZED_CUT_COPPER))
+                ;
+        BlockInstance p = new BlockInstance(Material.STICKY_PISTON).facing(BlockFace.DOWN);
+        SolidBlockInstance k = new SolidBlockInstance();
+        return BlockTemplate.start()
+                .x(n,b,c,b,n).z()
+                .x(i,b,b,b,i).z()
+                .x(n,b,c,b,n).y()
+
+                .x(n,b,c,b,n).z()
+                .x(n,a,a,a,n).z()
+                .x(n,b,c,b,n).y()
+
+                .x(n,b,d,b,n).z()
+                .x(n,d,k,d,n).z()
+                .x(n,b,d,b,n).y()
+
+                .x(n,c,d,c,n).z()
+                .x(n,c,p,c,n).z()
+                .x(n,c,d,c,n).y()
+
+                .x(n,n,n,n,n).z()
+                .x(n,n,f,n,n).z()
+                .x(n,n,n,n,n).finish(2,3,1)
+                ;
+    }
+
+    @Override
+    public void notify(INotifier<EInventoryUpdateStatus> sender, EInventoryUpdateStatus status) {
+        addToTicker();
+    }
+}
