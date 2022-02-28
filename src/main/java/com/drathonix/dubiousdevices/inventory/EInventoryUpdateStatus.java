@@ -1,4 +1,4 @@
-package com.drathonix.dubiousdevices.event;
+package com.drathonix.dubiousdevices.inventory;
 
 public enum EInventoryUpdateStatus {
     ADDED,

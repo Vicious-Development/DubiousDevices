@@ -1,11 +1,10 @@
-package com.drathonix.dubiousdevices.event;
+package com.drathonix.dubiousdevices.inventory;
 
 import com.drathonix.dubiousdevices.interfaces.INotifiable;
 import com.drathonix.dubiousdevices.interfaces.INotifier;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +61,6 @@ public class InventoryWrapper implements INotifier<EInventoryUpdateStatus> {
     public void remap(Inventory inv) {
         MAP.clear();
         map(inv);
-        System.out.println("INVWRAP:" + MAP);
         sendNotification(EInventoryUpdateStatus.REMAPPED);
     }
     private void map(Inventory inv){

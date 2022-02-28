@@ -1,12 +1,12 @@
-package com.drathonix.dubiousdevices.event;
+package com.drathonix.dubiousdevices.inventory;
 
 import com.drathonix.dubiousdevices.DubiousDevices;
-import com.drathonix.dubiousdevices.data.InventoryWrapperChunkHandler;
 import com.vicious.viciouslibkit.data.DataTypeNotFoundException;
 import com.vicious.viciouslibkit.data.worldstorage.PluginChunkData;
 import com.vicious.viciouslibkit.data.worldstorage.PluginWorldData;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Container;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -68,7 +68,9 @@ public class InventoryEvents implements Listener {
     }
     public static void remapWrapper(Inventory inv){
         InventoryWrapper wrapper = getWrapper(inv);
-        if(wrapper == null) return;
+        if(wrapper == null){
+            return;
+        }
         wrapper.remap(inv);
     }
     public static InventoryWrapper getWrapper(Inventory inv){
@@ -147,9 +149,20 @@ public class InventoryEvents implements Listener {
         InventoryAction[] test = InventoryAction.values();
         for (InventoryAction inventoryAction : test) {
             registerInventoryClickListener(inventoryAction,(ev)->{
-                if(ev.isCancelled()) return;
-                if(ev.getClickedInventory() != null) {
-                    Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE,()->remapWrapper(ev.getClickedInventory()),1);
+                try {
+                    if (ev.isCancelled()) return;
+                    if (ev.getClickedInventory() != null && ev.getClickedInventory().getHolder() instanceof Container) {
+                        Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE, () -> remapWrapper(ev.getClickedInventory()), 1);
+                    }
+                    else {
+                        Inventory inv2 = ev.getInventory();
+                        if (inv2.getHolder() instanceof Container) {
+                            Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE, () -> remapWrapper(inv2), 1);
+                        }
+                    }
+                } catch (Exception e){
+                    DubiousDevices.LOGGER.warning("Error in inventory action handler: " + e.getMessage());
+                    e.printStackTrace();
                 }
             });
         }

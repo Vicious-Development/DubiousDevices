@@ -1,21 +1,34 @@
 package com.drathonix.dubiousdevices.recipe;
 
+import com.drathonix.dubiousdevices.devices.overworld.crusher.CrusherRecipe;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
+import com.vicious.viciouslibkit.util.map.RoughItemStackMap;
 import org.bukkit.inventory.ItemStack;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class ItemRecipe<T extends ItemRecipe<T>>{
+public abstract class ItemRecipe<T extends ItemRecipe<T>> implements ISerializableRecipe<CrusherRecipe> {
     protected final List<ItemStack> inputs;
     protected final List<ItemStack> outputs;
+    protected boolean ignoreNBT = false;
     public ItemRecipe(List<ItemStack> inputs, List<ItemStack> outputs) {
         this.inputs=inputs;
         this.outputs=outputs;
     }
+    public ItemRecipe(List<ItemStack> inputs, List<ItemStack> outputs, boolean ignoreNBT) {
+        this.inputs=inputs;
+        this.outputs=outputs;
+        this.ignoreNBT=ignoreNBT;
+    }
     public boolean matches(List<ItemStack> inputs){
-        return matches(new ItemStackMap().addAll(inputs));
+        return ignoreNBT ? matches(new RoughItemStackMap().addAll(inputs)) : matches(new ItemStackMap().addAll(inputs));
+    }
+    public List<String> rFlags(){
+        List<String> flags = new ArrayList<>();
+        if(ignoreNBT) flags.add(DDRecipeFlags.NONBT);
+        return flags;
     }
 
     /**
@@ -24,6 +37,11 @@ public class ItemRecipe<T extends ItemRecipe<T>>{
      * @return
      */
     public boolean matches(ItemStackMap inputs){
+        if(ignoreNBT) return matches(new RoughItemStackMap().addAll(inputs.values()));
+        return inputs.hasAll(this.inputs);
+    }
+    public boolean matches(RoughItemStackMap inputs){
+        //Cannot be converted back to FineItemStackMap (ItemStackMap).
         return inputs.hasAll(this.inputs);
     }
 
@@ -53,6 +71,22 @@ public class ItemRecipe<T extends ItemRecipe<T>>{
             stacks.add(output.clone());
         }
         return stacks;
+    }
+    public boolean ignoresNBT(){
+        return ignoreNBT;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ItemRecipe<?> that = (ItemRecipe<?>) o;
+        return Objects.equals(inputs, that.inputs) && Objects.equals(outputs, that.outputs);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(inputs, outputs);
     }
 
     @Override

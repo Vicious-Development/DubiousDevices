@@ -1,4 +1,4 @@
-package com.drathonix.dubiousdevices.devices;
+package com.drathonix.dubiousdevices.blockinstances;
 
 import com.vicious.viciouslibkit.block.BlockInstance;
 import org.bukkit.Axis;

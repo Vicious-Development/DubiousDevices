@@ -31,7 +31,7 @@ repositories {
 
 dependencies {
     compileOnly (fileTree(dir: 'lib', include: ['*.jar']))
-    compileOnly "com.vicious:viciouslibkit:1.2.2";
+    compileOnly "com.vicious:viciouslibkit:1.2.5";
     compileOnly 'org.spigotmc:spigot-api:1.18.1-R0.1-SNAPSHOT'
 }
 

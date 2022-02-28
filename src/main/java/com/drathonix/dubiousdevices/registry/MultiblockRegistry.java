@@ -10,6 +10,5 @@ public class MultiblockRegistry {
         //MultiBlockService.registerClickListener(Material.PURPUR_PILLAR,Enderizer.class);
         MultiBlockService.registerMultiblock(Crusher.class,"DubiousDevicesCrusher",Crusher.template(),Crusher::new,Crusher::new);
         MultiBlockService.registerClickListener(Material.STICKY_PISTON,Crusher.class);
-        //System.out.println(Crusher.template().allOrientations());
     }
 }

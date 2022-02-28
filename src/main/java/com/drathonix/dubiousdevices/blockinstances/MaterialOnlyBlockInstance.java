@@ -1,13 +1,8 @@
-package com.drathonix.dubiousdevices.devices;
+package com.drathonix.dubiousdevices.blockinstances;
 
 import com.vicious.viciouslibkit.block.BlockInstance;
-import com.vicious.viciouslibkit.util.FacingUtil;
-import org.bukkit.Axis;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.*;
-import org.bukkit.block.data.type.Slab;
 
 public class MaterialOnlyBlockInstance extends SpecialBlockInstance {
 
@@ -28,5 +23,10 @@ public class MaterialOnlyBlockInstance extends SpecialBlockInstance {
     @Override
     public String toString() {
         return "MO-" + super.toString();
+    }
+
+    @Override
+    public String verboseInfo() {
+        return "A " + material + " block";
     }
 }

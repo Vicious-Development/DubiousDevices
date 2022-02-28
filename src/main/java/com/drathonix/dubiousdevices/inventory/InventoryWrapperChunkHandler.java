@@ -1,12 +1,9 @@
-package com.drathonix.dubiousdevices.data;
+package com.drathonix.dubiousdevices.inventory;
 
-import com.drathonix.dubiousdevices.event.InventoryPositionMap;
-import com.drathonix.dubiousdevices.event.InventoryWrapper;
 import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
 import com.vicious.viciouslibkit.block.BlockInstance;
 import com.vicious.viciouslibkit.interfaces.IChunkDataHandler;
 import com.vicious.viciouslibkit.util.LibKitUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;

@@ -1,16 +1,19 @@
 package com.drathonix.dubiousdevices.devices.overworld.crusher;
 
 import com.drathonix.dubiousdevices.DubiousDevices;
-import com.drathonix.dubiousdevices.data.InventoryWrapperChunkHandler;
-import com.drathonix.dubiousdevices.devices.MaterialOnlyBlockInstance;
-import com.drathonix.dubiousdevices.devices.SolidBlockInstance;
-import com.drathonix.dubiousdevices.event.EInventoryUpdateStatus;
-import com.drathonix.dubiousdevices.event.InventoryWrapper;
+import com.drathonix.dubiousdevices.blockinstances.MaterialOnlyBlockInstance;
+import com.drathonix.dubiousdevices.blockinstances.SolidBlockInstance;
+import com.drathonix.dubiousdevices.devices.overworld.machine.IOTypes;
+import com.drathonix.dubiousdevices.devices.overworld.machine.MaterialValue;
 import com.drathonix.dubiousdevices.interfaces.INotifiable;
 import com.drathonix.dubiousdevices.interfaces.INotifier;
-import com.drathonix.dubiousdevices.util.NMSHelper;
+import com.drathonix.dubiousdevices.inventory.EInventoryUpdateStatus;
+import com.drathonix.dubiousdevices.inventory.InventoryWrapper;
+import com.drathonix.dubiousdevices.inventory.InventoryWrapperChunkHandler;
 import com.drathonix.dubiousdevices.registry.RecipeHandlers;
 import com.drathonix.dubiousdevices.util.DubiousUtil;
+import com.drathonix.dubiousdevices.util.NMSHelper;
+import com.google.common.collect.Lists;
 import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
 import com.vicious.viciouslibkit.block.BlockInstance;
 import com.vicious.viciouslibkit.block.BlockTemplate;
@@ -34,7 +37,6 @@ import org.bukkit.block.data.type.Slab;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -44,14 +46,13 @@ import java.util.UUID;
 TODO: Create a generic machine multiblock.
  */
 public class Crusher extends TickableMultiBlock implements INotifiable<EInventoryUpdateStatus> {
-    //Optimize recipe handling by only checking the recipe on inventory updates.
-    private boolean checkRecipe = true;
     private List<ItemStack> storedOutputs = new ArrayList<>();
     private List<ItemStack> storedInputs;
+    private int maxExtraDrops = 0;
     //Northfacing
     private static final SQLVector3i iol = new SQLVector3i(-2,-3,0);
-    private static SQLVector3i io1;
-    private static SQLVector3i io2;
+    private SQLVector3i io1;
+    private SQLVector3i io2;
 
     public int timer = 0;
     public int processTime = 20;
@@ -59,6 +60,11 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     public CrusherRecipe recipe = null;
     public Inventory inputs;
     public Inventory outputs;
+
+    @Override
+    public void save() {
+        super.save();
+    }
 
     public Crusher(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
         super(mbType, w, l, dir, flipped, id);
@@ -71,6 +77,7 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
 
     @Override
     protected void invalidate(MultiBlockChunkDataHandler dat) {
+        System.out.println("Invalidated");
         InventoryWrapper iw = getInvWrapper(io1);
         if(iw != null) iw.stopListening(this);
         iw = getInvWrapper(io2);
@@ -79,15 +86,17 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     }
     @Override
     public void validate() {
-        super.validate();
         io1 = DubiousUtil.orientate(iol,facing.value(),flipped.value());
         io2 = DubiousUtil.orientate(iol,facing.value(),!flipped.value());
         io1 = new SQLVector3i(xyz.value().x + io1.x,xyz.value().y + io1.y,xyz.value().z + io1.z);
         io2 = new SQLVector3i(xyz.value().x + io2.x,xyz.value().y + io2.y,xyz.value().z + io2.z);
+        Block b = world.getBlockAt(xyz.value().x,xyz.value().y-1,xyz.value().z);
+        maxExtraDrops = MaterialValue.getMaterialValue(b.getType());
         Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE,()->{
             getInvWrapper(io1).listen(this);
             getInvWrapper(io2).listen(this);
         },1);
+        super.validate();
     }
 
     public InventoryWrapper getInvWrapper(SQLVector3i p){
@@ -97,17 +106,27 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     @Override
     public void tick() {
         super.tick();
+        System.out.println("Ticking: " + timer);
         //Logic. No recipe, check the input inventory. Still no recipe, stop ticking.
         if(timer == 0){
             initInputInv();
             if(inputs != null) {
                 if (!checkRecipe(mapInventory(inputs))) {
                     removeFromTicker();
+                    postTick();
                     return;
                 }
             }
+            else {
+                postTick();
+                return;
+            }
         }
         process();
+        postTick();
+    }
+
+    public void postTick(){
     }
 
     private void process() {
@@ -121,7 +140,7 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
                 piston.setBlockData(pdat);
                 input();
             } catch (Exception e){
-                System.out.println(e.getMessage());
+                DubiousDevices.LOGGER.warning(e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -139,40 +158,62 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     }
     private void input(){
         initInputInv();
-        for (ItemStack input : recipe.getInputs()) {
-            inputs.removeItem(input);
+        if(!recipe.ignoresNBT()) {
+            for (ItemStack input : recipe.getInputs()) {
+                inputs.removeItem(input);
+            }
+        }
+        else {
+            for (ItemStack input : recipe.getInputs()) {
+                extractIgnoreNBT(input);
+            }
         }
         storedInputs = recipe.cloneInputs();
+    }
+    private void extractIgnoreNBT(ItemStack stack){
+        ItemStack[] contents = inputs.getContents();
+        int count = stack.getAmount();
+        for (int i = 0; i < contents.length; i++) {
+            if(contents[i] == null) continue;
+            if(contents[i].getType() == stack.getType()){
+                int fcount = count - stack.getAmount();
+                stack.setAmount(Math.max(0,stack.getAmount()-count));
+                count = fcount;
+            }
+        }
+        if(count > 0){
+            DubiousDevices.LOGGER.severe("DUPLICATION HAS OCCURED!!! PLEASE REPORT TO THE GIT IMMEDIATELY");
+            DubiousDevices.LOGGER.severe("CAUSE OF DUPE: " + recipe);
+        }
     }
     private boolean output(){
         initOutputInv();
         if(storedOutputs.size() == 0){
-            storedOutputs = recipe.cloneOutputs();
+            if(recipe instanceof ExtraDropsCrusherRecipe){
+                storedOutputs = recipe.cloneOutputs();
+                if(maxExtraDrops > 0) {
+                    storedOutputs.forEach((s) -> {
+                        s.setAmount(s.getAmount() + DubiousDevices.random.nextInt(maxExtraDrops + 1));
+                    });
+                }
+            }
+            else storedOutputs = recipe.cloneOutputs();
         }
         InventoryHelper.moveFrom(outputs,storedOutputs);
         return storedOutputs.size() == 0;
     }
 
     public boolean checkRecipe(ItemStackMap inputs){
-        if(!checkRecipe) return true;
-        if(recipe != null && !recipe.matches(inputs)) resetRecipe();
+        if(recipe != null && !recipe.matches(inputs)) recipe = null;
         if (!getRecipe(inputs)) {
             return false;
         } else {
-            checkRecipe = false;
             return true;
         }
     }
     public boolean getRecipe(ItemStackMap inputs){
         recipe = RecipeHandlers.CRUSHER.getRecipe(inputs);
         return recipe != null;
-    }
-    public void requireRecipeCheck(){
-        checkRecipe = true;
-    }
-    public void resetRecipe(){
-        requireRecipeCheck();
-        recipe = null;
     }
 
     @Override
@@ -194,21 +235,14 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     }
     private void initInputInv(){
         if(inputs == null){
-            Inventory expected = getInventory(io1);
-            ItemStackMap invmap = mapInventory(expected);
-            requireRecipeCheck();
-            if(checkRecipe(invmap)){
-                inputs = expected;
+            Block b1 = world.getBlockAt(io1.x,io1.y,io1.z);
+            if(IOTypes.isInput(b1.getType())){
+                inputs = getInventory(io1);
                 outputs = getInventory(io2);
             }
-            else{
-                expected = getInventory(io2);
-                invmap = mapInventory(expected);
-                requireRecipeCheck();
-                if(checkRecipe(invmap)){
-                    inputs = expected;
-                    outputs = getInventory(io1);
-                }
+            else {
+                inputs = getInventory(io2);
+                inputs = getInventory(io1);
             }
         }
         else{
@@ -244,6 +278,13 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
         } else return null;
     }
 
+    public static void addRecipe(ItemStack[] inputs, ItemStack[] outputs){
+        RecipeHandlers.CRUSHER.addRecipe(new CrusherRecipe(Lists.newArrayList(inputs),Lists.newArrayList(outputs)));
+    }
+    public static void removeRecipe(ItemStack[] inputs){
+        RecipeHandlers.CRUSHER.removeRecipe(Lists.newArrayList(inputs));
+    }
+
     public static BlockTemplate template(){
         BlockInstance n = null;
         BlockInstance a = BlockInstance.AIR;
@@ -272,7 +313,9 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
                 .add(new BlockInstance(Material.HOPPER))
                 .add(new BlockInstance(Material.TRAPPED_CHEST))
                 .add(new BlockInstance(Material.BARREL))
-                .add(new BlockInstance(Material.CHEST));
+                .add(new BlockInstance(Material.CHEST))
+                .add(new BlockInstance(Material.DISPENSER))
+                .add(new BlockInstance(Material.DROPPER));
         BlockInstance f = new MultipleBlockInstances()
                 .add(new BlockInstance(Material.COPPER_BLOCK))
                 .add(new BlockInstance(Material.WEATHERED_COPPER))
@@ -315,6 +358,7 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
                 .x(n,n,n,n,n).finish(2,3,1)
                 ;
     }
+
 
     @Override
     public void notify(INotifier<EInventoryUpdateStatus> sender, EInventoryUpdateStatus status) {

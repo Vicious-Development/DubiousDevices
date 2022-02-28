@@ -1,4 +1,4 @@
-package com.drathonix.dubiousdevices.devices;
+package com.drathonix.dubiousdevices.blockinstances;
 
 import com.vicious.viciouslibkit.block.BlockInstance;
 import org.bukkit.Material;
@@ -22,5 +22,15 @@ public class SolidBlockInstance extends SpecialBlockInstance {
     @Override
     public boolean matches(BlockInstance in) {
         return false;
+    }
+
+    @Override
+    public String verboseInfo() {
+        return "ANY SOLID BLOCK";
+    }
+
+    @Override
+    public String toString() {
+        return "ANY SOLID BLOCK";
     }
 }

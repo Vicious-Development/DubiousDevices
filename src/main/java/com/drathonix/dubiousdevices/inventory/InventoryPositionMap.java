@@ -1,7 +1,6 @@
-package com.drathonix.dubiousdevices.event;
+package com.drathonix.dubiousdevices.inventory;
 
 import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
-import org.bukkit.inventory.Inventory;
 
 import java.util.HashMap;
 

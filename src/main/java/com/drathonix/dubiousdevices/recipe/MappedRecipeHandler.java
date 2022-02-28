@@ -1,19 +1,28 @@
 package com.drathonix.dubiousdevices.recipe;
 
 import com.drathonix.dubiousdevices.DubiousDevices;
+import com.vicious.viciouslib.util.FileUtil;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<T>{
     //For all the inputs in a recipe, the recipe will be mapped to each input.
     //This speeds up the recipe search speed (And trust me there are many) at the cost of memory.
-    private final Map<Material,List<T>> recipes = new EnumMap<>(Material.class);
+    protected final Map<Material,List<T>> recipeMap = new EnumMap<>(Material.class);
 
     /**
      * Recommended method. Faster than the output removal variant.
@@ -27,22 +36,24 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
         removeRecipe(recipe);
     }
     public void removeRecipe(T recipe){
+        super.removeRecipe(recipe);
         for (ItemStack rin : recipe.inputs) {
-            List<T> recList = recipes.get(rin.getType());
+            List<T> recList = recipeMap.get(rin.getType());
             recList.remove(recipe);
-            if (recList.isEmpty()) recipes.remove(rin.getType());
+            if (recList.isEmpty()) recipeMap.remove(rin.getType());
         }
     }
     public void addRecipe(T recipe){
+        super.addRecipe(recipe);
         for (ItemStack input : recipe.inputs) {
-            recipes.putIfAbsent(input.getType(),new ArrayList<>());
-            List<T> list = recipes.get(input.getType());
-            list.add(recipe);
+            recipeMap.putIfAbsent(input.getType(),new ArrayList<>());
+            List<T> list = recipeMap.get(input.getType());
+            if(!list.contains(recipe)) list.add(recipe);
         }
     }
     public T getRecipe(List<ItemStack> inputs){
         for (ItemStack input : inputs) {
-            List<T> recipeList = recipes.get(input.getType());
+            List<T> recipeList = recipeMap.get(input.getType());
             if(recipeList == null) continue;
             for (T recipe : recipeList) {
                 if(recipe.matches(inputs)) return recipe;
@@ -52,7 +63,7 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
     }
     public T getRecipe(ItemStackMap inputs) {
         for (ItemStack input : inputs.values()) {
-            List<T> recipeList = recipes.get(input.getType());
+            List<T> recipeList = recipeMap.get(input.getType());
             //Equal to continue in this case.
             if(recipeList == null) continue;
             for (T recipe : recipeList) {
@@ -61,5 +72,46 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
         }
         return null;
     }
-
+    public static class Named<T extends ItemRecipe<T>> extends MappedRecipeHandler<T>{
+        private final String name;
+        private final Path destination;
+        public Named(@Nonnull String name, Path directory){
+            this.name = name;
+            this.destination = FileUtil.toPath(directory.toAbsolutePath() + "/" + name + ".txt");
+        }
+        public void initIfDNE(Runnable defaultRecipeGenerator, Function<RecipeParseResult,T> recipeDeserializer)  {
+            if(!Files.exists(destination)){
+                try {
+                    Files.createFile(destination);
+                    try {
+                        defaultRecipeGenerator.run();
+                    } catch (Exception e){
+                        DubiousDevices.LOGGER.severe(name + " recipe generator failed: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                    write();
+                } catch (IOException e) {
+                    DubiousDevices.LOGGER.severe("Failed to generate the recipe file.");
+                    e.printStackTrace();
+                }
+            }
+            else{
+                List<RecipeParseResult> parses = RecipeLang.parseFile(new File(destination.toAbsolutePath().toString()));
+                for (RecipeParseResult parse : parses) {
+                    addRecipe(recipeDeserializer.apply(parse));
+                }
+            }
+        }
+        public void write() {
+            recipes.forEach((r)-> {
+                try {
+                    Files.write(destination,r.serialize().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(destination,"\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                } catch (IOException e) {
+                    DubiousDevices.LOGGER.warning("Failed to write a recipe: " + r);
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
 }
