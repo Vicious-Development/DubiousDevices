@@ -1,4 +1,4 @@
-package com.drathonix.dubiousdevices.util;
+package com.drathonix.dubiousdevices.commands;
 
 import com.drathonix.dubiousdevices.guis.RecipeCreation;
 import com.drathonix.dubiousdevices.guis.RecipeView;
