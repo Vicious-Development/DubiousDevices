@@ -76,6 +76,12 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
         }
         return null;
     }
+
+    @Override
+    public void addRecipeAndWrite(T recipe) {
+        addRecipe(recipe);
+    }
+
     public static class Named<T extends ItemRecipe<T>> extends MappedRecipeHandler<T>{
         public final String name;
         private final Path destination;
@@ -117,6 +123,18 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
                     e.printStackTrace();
                 }
             });
+        }
+
+        @Override
+        public void addRecipeAndWrite(T r) {
+            addRecipe(r);
+            try {
+                Files.write(destination,r.serialize().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                Files.write(destination,"\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                DubiousDevices.LOGGER.warning("Failed to write a recipe: " + r);
+                e.printStackTrace();
+            }
         }
     }
 }

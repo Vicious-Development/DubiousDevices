@@ -64,11 +64,14 @@ public class CustomGUIInventory {
     public CustomGUIInventory setElement(GUIElement element, int slot){
         elements[slot]=element;
         element.slot = slot;
+        GUI.setItem(slot,element.getStack());
         return this;
     }
     public CustomGUIInventory setElement(GUIElement element, int row, int column){
-        elements[row*9+column]=element;
-        element.slot = row*9+column;
+        int slot = row*9+column;
+        elements[slot]=element;
+        element.slot = slot;
+        GUI.setItem(slot,element.getStack());
         return this;
     }
     public void open(Player plr){

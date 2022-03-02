@@ -33,23 +33,28 @@ public final class DubiousDevices extends JavaPlugin {
     public void onEnable() {
         INSTANCE = this;
         LOGGER = this.getLogger();
-        DubiousDirectories.initializePluginDependents();
         try {
-            jarURL = classLoader.getResources("net/minecraft");
-            DeepReflection.mapClasses(jarURL,classLoader);
-        } catch (Exception e) {
-            LOGGER.severe("Dubious Devices failed to load. Possibly due to a bad ViciousLibKit version. Dubious Devices requires minimum VLK " + VLKVer);
-            e.printStackTrace();
-            return;
+            DubiousDirectories.initializePluginDependents();
+            try {
+                jarURL = classLoader.getResources("net/minecraft");
+                DeepReflection.mapClasses(jarURL, classLoader);
+            } catch (Exception e) {
+                LOGGER.severe("Dubious Devices failed to load. Possibly due to a bad ViciousLibKit version. Dubious Devices requires minimum VLK " + VLKVer);
+                e.printStackTrace();
+                return;
+            }
+            new MultiblockRegistry();
+            new NMSHelper();
+            //getServer().getPluginManager().registerEvents(new Compactor(), this);
+            getServer().getPluginManager().registerEvents(new InventoryEvents(), this);
+            // Plugin startup logic
+            PluginChunkData.registerDataType(InventoryWrapperChunkHandler.class, InventoryWrapperChunkHandler::new);
+            new RecipeHandlers();
+            this.getCommand("devicerecipe").setExecutor(DDCommands::recipeCMD);
+        } catch (Exception ex){
+            LOGGER.severe("Dubious Devices failed to load properly, caused by: " + ex.getMessage());
+            ex.printStackTrace();
         }
-        new MultiblockRegistry();
-        new NMSHelper();
-        //getServer().getPluginManager().registerEvents(new Compactor(), this);
-        getServer().getPluginManager().registerEvents(new InventoryEvents(), this);
-        // Plugin startup logic
-        PluginChunkData.registerDataType(InventoryWrapperChunkHandler.class, InventoryWrapperChunkHandler::new);
-        new RecipeHandlers();
-        this.getCommand("recipe").setExecutor(DDCommands::recipeCMD);
     }
 
     @Override

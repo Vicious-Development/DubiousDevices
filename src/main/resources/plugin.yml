@@ -8,10 +8,10 @@ depend: [Viciouslibkit]
 softdepend: []
 authors: [Drathonix]
 commands:
-  addrecipe:
+  devicerecipe:
     description: Adds a recipe to the selected machine
     usage: /recipe <device>
-    permission: dubiousdevices.addrecipe
+    permission: dubiousdevices.devicerecipe
   devicelist:
     description: Lists all registered devices.
     usage: /devicelist

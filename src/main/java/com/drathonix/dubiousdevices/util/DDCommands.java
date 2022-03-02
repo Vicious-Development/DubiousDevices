@@ -23,10 +23,18 @@ public class DDCommands {
             gui.open(plr);
         });
         recipeCommands.put("add",(plr,handler,args)->{
+            if(!isRecipeOpped(plr)) return;
             CustomGUIInventory gui = RecipeCreation.inputsPage(args[0],handler);
             gui.open(plr);
         });
 
+    }
+    private static boolean isRecipeOpped(Player plr){
+        if(!plr.hasPermission("dubiousdevices:recipeop")){
+            plr.sendMessage(ChatColor.RED + "You need to have Recipe Operator permission to use this command!");
+            return false;
+        }
+        return true;
     }
     private static boolean playerCheck(CommandSender sender, Supplier<Boolean> run){
         if(sender instanceof Player){
@@ -43,7 +51,7 @@ public class DDCommands {
             String device = args[0];
             RecipeHandler<?> handler = RecipeHandlers.handlers.get(device);
             if(handler == null){
-                plr.sendMessage(ChatColor.RED + args[1] + " is not a valid recipe handler for /recipe!");
+                plr.sendMessage(ChatColor.RED + args[0] + " is not a valid recipe handler for /recipe! Options: " + RecipeHandlers.handlers.keySet());
                 return false;
             }
             TriConsumer<Player,RecipeHandler<?>,String[]> consumer = recipeCommands.get(args[1]);
@@ -51,6 +59,7 @@ public class DDCommands {
                 plr.sendMessage(ChatColor.RED + args[1] + " is not a valid subcommand for /recipe " + device + "!");
                 return false;
             }
+            consumer.accept(plr,handler,args);
             return true;
         });
     }

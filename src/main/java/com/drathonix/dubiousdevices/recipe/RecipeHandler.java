@@ -43,4 +43,6 @@ public abstract class RecipeHandler<T extends ItemRecipe<T>> {
     public List<RecipeFlag> validFlags() {
         return validFlags;
     }
+
+    public abstract void addRecipeAndWrite(T recipe);
 }

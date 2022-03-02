@@ -15,71 +15,65 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.*;
 
 public class RecipeCreation {
-    public static Map<UUID, RecipeBuilder> playerRecipeBuilders = new HashMap<>();
     public static <T extends ItemRecipe<T>> CustomGUIInventory inputsPage(String deviceName, RecipeHandler<T> handler){
         CustomGUIInventory gui = CustomGUIInventory.newGUI(deviceName + " Inputs",27);
         //Allow modification.
-        for (GUIElement element : gui.elements) {
+        for (GUIElement<?> element : gui.elements) {
             element.cancel = false;
         }
-        GUIElement outputsPageElement = GUIElement.loredElement(new ItemStack(Material.LIME_WOOL), ChatColor.GOLD.toString() + ChatColor.BOLD + "Outputs",ChatColor.GREEN + "Click me when you're ready to set the recipe inputs and move to the outputs");
+        GUIElement<?> outputsPageElement = GUIElement.loredElement(new ItemStack(Material.LIME_WOOL), ChatColor.GOLD.toString() + ChatColor.BOLD + "Outputs",ChatColor.GREEN + "Click me when you're ready to set the recipe inputs and move to the outputs");
         outputsPageElement.onLeftClick((ev)->{
-            UUID plr = ev.getWhoClicked().getUniqueId();
             RecipeBuilder builder = new RecipeBuilder();
             ItemStackMap stackMap = new ItemStackMap();
             outputsPageElement.setStack(null);
             gui.updateElement(outputsPageElement);
-            stackMap.addAll(Arrays.asList(gui.GUI.getContents()));
+            for (ItemStack s : gui.GUI.getContents()) {
+                if(s != null){
+                    stackMap.add(s);
+                }
+            }
             builder.inputs=stackMap.getStacks();
-            playerRecipeBuilders.put(plr,builder);
-            gui.softClose();
-            outputsPage(deviceName,handler).open((Player) ev.getWhoClicked());
+            gui.forceClose();
+            outputsPage(deviceName,handler,builder).open((Player) ev.getWhoClicked());
         });
-        gui.onClose = ()->{
-            gui.accessors.forEach((u,p)->{
-                playerRecipeBuilders.remove(u);
-            });
-        };
         gui.setElement(outputsPageElement,2,8);
         return gui;
     }
-    public static <T extends ItemRecipe<T>> CustomGUIInventory outputsPage(String deviceName, RecipeHandler<T> handler) {
+    public static <T extends ItemRecipe<T>> CustomGUIInventory outputsPage(String deviceName, RecipeHandler<T> handler, RecipeBuilder builder) {
         CustomGUIInventory gui = CustomGUIInventory.newGUI(deviceName + " Outputs",27);
         //Allow modification.
-        for (GUIElement element : gui.elements) {
+        for (GUIElement<?> element : gui.elements) {
             element.cancel = false;
         }
-        GUIElement flagsPageElement = GUIElement.loredElement(new ItemStack(Material.LIME_WOOL), ChatColor.GOLD.toString() + ChatColor.BOLD + "Flags",ChatColor.GREEN + "Click me when you're ready to set the recipe outputs and move to the flags");
+        GUIElement<?> flagsPageElement = GUIElement.loredElement(new ItemStack(Material.LIME_WOOL), ChatColor.GOLD.toString() + ChatColor.BOLD + "Flags",ChatColor.GREEN + "Click me when you're ready to set the recipe outputs and move to the flags");
         flagsPageElement.onLeftClick((ev)->{
-            UUID plr = ev.getWhoClicked().getUniqueId();
-            RecipeBuilder builder = playerRecipeBuilders.get(plr);
             ItemStackMap stackMap = new ItemStackMap();
             flagsPageElement.setStack(null);
             gui.updateElement(flagsPageElement);
-            stackMap.addAll(Arrays.asList(gui.GUI.getContents()));
+            for (ItemStack s : gui.GUI.getContents()) {
+                if(s != null){
+                    stackMap.add(s);
+                }
+            }
             builder.outputs=stackMap.getStacks();
-            gui.softClose();
-            flagsPage(deviceName,handler).open((Player) ev.getWhoClicked());
+            System.out.println(builder.outputs);
+            gui.forceClose();
+            flagsPage(deviceName,handler,builder).open((Player) ev.getWhoClicked());
         });
-        gui.onClose = ()->{
-            gui.accessors.forEach((u,p)->{
-                playerRecipeBuilders.remove(u);
-            });
-        };
         gui.setElement(flagsPageElement,2,8);
         return gui;
     }
-    public static <T extends ItemRecipe<T>> CustomGUIInventory flagsPage(String deviceName, RecipeHandler<T> handler){
+    public static <T extends ItemRecipe<T>> CustomGUIInventory flagsPage(String deviceName, RecipeHandler<T> handler, RecipeBuilder builder){
         CustomGUIInventory gui = CustomGUIInventory.newGUI(deviceName + " Flags",54);
         //Allow modification.
-        for (GUIElement element : gui.elements) {
+        for (GUIElement<?> element : gui.elements) {
             element.cancel = false;
         }
         List<String> activeFlags = new ArrayList<>();
         List<RecipeFlag> validFlags = handler.validFlags();
         for (int i = 0; i < validFlags.size(); i++) {
             RecipeFlag flag = validFlags.get(i);
-            GUIElement flagElem = GUIElement.loredElement(new ItemStack(flag.material),flag.name,flag.description, flag.defaultState ? ChatColor.GREEN.toString() + ChatColor.BOLD + "ENABLED" : ChatColor.GREEN.toString() + ChatColor.BOLD + "DISABLED");
+            GUIElement<?> flagElem = GUIElement.loredElement(new ItemStack(flag.material),flag.name,flag.description, flag.defaultState ? ChatColor.GREEN.toString() + ChatColor.BOLD + "ENABLED" : ChatColor.GREEN.toString() + ChatColor.BOLD + "DISABLED");
             if(flag.defaultState){
                 flagElem.toggleEnchant();
                 activeFlags.add(flag.name);
@@ -91,19 +85,12 @@ public class RecipeCreation {
             });
             gui.setElement(flagElem,i);
         }
-        GUIElement done = GUIElement.loredElement(new ItemStack(Material.LIME_WOOL), ChatColor.GOLD.toString() + ChatColor.BOLD + "Flags",ChatColor.GREEN + "Click me when you're ready to set the recipe outputs and move to the flags");
+        GUIElement<?> done = GUIElement.loredElement(new ItemStack(Material.LIME_WOOL), ChatColor.GOLD.toString() + ChatColor.BOLD + "Done",ChatColor.GREEN + "Click me when you're ready to set the recipe flags and add the recipe!");
         done.onLeftClick((ev)->{
-            UUID plr = ev.getWhoClicked().getUniqueId();
-            RecipeBuilder builder = playerRecipeBuilders.get(plr);
             builder.flags=activeFlags;
-            handler.addRecipe(handler.defaultConstructor.construct(builder.inputs, builder.outputs, builder.flags));
-            gui.close();
+            handler.addRecipeAndWrite(handler.defaultConstructor.construct(builder.inputs, builder.outputs, builder.flags));
+            gui.forceClose();
         });
-        gui.onClose = ()->{
-            gui.accessors.forEach((u,p)->{
-                playerRecipeBuilders.remove(u);
-            });
-        };
         gui.setElement(done,5,8);
         return gui;
     }
@@ -127,7 +114,7 @@ public class RecipeCreation {
             ItemMeta metaverse = stack.getItemMeta();
             if(metaverse != null) {
                 List<String> lore = metaverse.getLore();
-                lore.set(lore.size()-1,ChatColor.GREEN.toString() + ChatColor.BOLD + "DISABLED");
+                lore.set(lore.size()-1,ChatColor.DARK_RED.toString() + ChatColor.BOLD + "DISABLED");
                 metaverse.setLore(lore);
             }
             stack.setItemMeta(metaverse);
