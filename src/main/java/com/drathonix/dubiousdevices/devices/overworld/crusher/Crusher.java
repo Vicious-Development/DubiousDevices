@@ -175,7 +175,7 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
             if(contents[i] == null) continue;
             if(contents[i].getType() == stack.getType()){
                 int fcount = count - stack.getAmount();
-                stack.setAmount(Math.max(0,stack.getAmount()-count));
+                contents[i].setAmount(Math.max(0,stack.getAmount()-count));
                 count = fcount;
             }
         }
