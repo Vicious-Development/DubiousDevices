@@ -4,6 +4,7 @@ import com.drathonix.dubiousdevices.inventory.InventoryEvents;
 import com.drathonix.dubiousdevices.inventory.InventoryWrapperChunkHandler;
 import com.drathonix.dubiousdevices.registry.MultiblockRegistry;
 import com.drathonix.dubiousdevices.registry.RecipeHandlers;
+import com.drathonix.dubiousdevices.util.DDCommands;
 import com.drathonix.dubiousdevices.util.DubiousDirectories;
 import com.drathonix.dubiousdevices.util.NMSHelper;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
@@ -48,6 +49,7 @@ public final class DubiousDevices extends JavaPlugin {
         // Plugin startup logic
         PluginChunkData.registerDataType(InventoryWrapperChunkHandler.class, InventoryWrapperChunkHandler::new);
         new RecipeHandlers();
+        this.getCommand("recipe").setExecutor(DDCommands::recipeCMD);
     }
 
     @Override

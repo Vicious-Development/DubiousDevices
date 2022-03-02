@@ -24,6 +24,10 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
     //This speeds up the recipe search speed (And trust me there are many) at the cost of memory.
     protected final Map<Material,List<T>> recipeMap = new EnumMap<>(Material.class);
 
+    public MappedRecipeHandler(List<RecipeFlag> validFlags, RecipeConstructor<T> defaultConstructor) {
+        super(validFlags,defaultConstructor);
+    }
+
     /**
      * Recommended method. Faster than the output removal variant.
      */
@@ -73,9 +77,10 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
         return null;
     }
     public static class Named<T extends ItemRecipe<T>> extends MappedRecipeHandler<T>{
-        private final String name;
+        public final String name;
         private final Path destination;
-        public Named(@Nonnull String name, Path directory){
+        public Named(@Nonnull String name, Path directory, List<RecipeFlag> validFlags, RecipeConstructor<T> defaultConstructor){
+            super(validFlags,defaultConstructor);
             this.name = name;
             this.destination = FileUtil.toPath(directory.toAbsolutePath() + "/" + name + ".txt");
         }

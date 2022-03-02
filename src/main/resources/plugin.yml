@@ -7,5 +7,15 @@ loadbefore: []
 depend: [Viciouslibkit]
 softdepend: []
 authors: [Drathonix]
+commands:
+  addrecipe:
+    description: Adds a recipe to the selected machine
+    usage: /recipe <device>
+    permission: dubiousdevices.addrecipe
+  devicelist:
+    description: Lists all registered devices.
+    usage: /devicelist
+    permission: dubiousdevices.devicelist
+
 description: Dubious Devices
 

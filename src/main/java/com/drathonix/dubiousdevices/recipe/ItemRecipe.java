@@ -22,12 +22,17 @@ public abstract class ItemRecipe<T extends ItemRecipe<T>> implements ISerializab
         this.outputs=outputs;
         this.ignoreNBT=ignoreNBT;
     }
+    public ItemRecipe(List<ItemStack> inputs, List<ItemStack> outputs, List<String> flags){
+        this.inputs=inputs;
+        this.outputs=outputs;
+        this.ignoreNBT=flags.contains(DDRecipeFlags.NONBT.name);
+    }
     public boolean matches(List<ItemStack> inputs){
         return ignoreNBT ? matches(new RoughItemStackMap().addAll(inputs)) : matches(new ItemStackMap().addAll(inputs));
     }
     public List<String> rFlags(){
         List<String> flags = new ArrayList<>();
-        if(ignoreNBT) flags.add(DDRecipeFlags.NONBT);
+        if(ignoreNBT) flags.add(DDRecipeFlags.NONBT.name);
         return flags;
     }
 
@@ -82,6 +87,10 @@ public abstract class ItemRecipe<T extends ItemRecipe<T>> implements ISerializab
         if (o == null || getClass() != o.getClass()) return false;
         ItemRecipe<?> that = (ItemRecipe<?>) o;
         return Objects.equals(inputs, that.inputs) && Objects.equals(outputs, that.outputs);
+    }
+    @Override
+    public String serialize() {
+        return RecipeParseResult.serialize(inputs,outputs,rFlags());
     }
 
     @Override

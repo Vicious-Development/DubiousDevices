@@ -11,7 +11,14 @@ import java.util.function.Consumer;
  * Should be an interfaces but Might
  */
 public abstract class RecipeHandler<T extends ItemRecipe<T>> {
-    protected List<T> recipes = new ArrayList<>();
+    public final List<T> recipes = new ArrayList<>();
+    protected List<RecipeFlag> validFlags;
+    public RecipeConstructor<T> defaultConstructor;
+    public RecipeHandler(List<RecipeFlag> validFlags, RecipeConstructor<T> defaultConstructor){
+        this.defaultConstructor=defaultConstructor;
+        if(!validFlags.contains(DDRecipeFlags.NONBT)) validFlags.add(DDRecipeFlags.NONBT);
+        this.validFlags=validFlags;
+    }
     public abstract void removeRecipe(List<ItemStack> inputs);
     public void removeRecipe(T recipe){
         recipes.remove(recipe);
@@ -31,5 +38,9 @@ public abstract class RecipeHandler<T extends ItemRecipe<T>> {
     }
     public void forEach(Consumer<T> consumer){
         recipes.forEach(consumer);
+    }
+
+    public List<RecipeFlag> validFlags() {
+        return validFlags;
     }
 }

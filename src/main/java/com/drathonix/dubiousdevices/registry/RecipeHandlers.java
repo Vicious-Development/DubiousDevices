@@ -1,22 +1,25 @@
 package com.drathonix.dubiousdevices.registry;
 
 import com.drathonix.dubiousdevices.devices.overworld.crusher.CrusherRecipe;
-import com.drathonix.dubiousdevices.devices.overworld.crusher.ExtraDropsCrusherRecipe;
-import com.drathonix.dubiousdevices.recipe.DDRecipeFlags;
-import com.drathonix.dubiousdevices.recipe.MappedRecipeHandler;
+import com.drathonix.dubiousdevices.recipe.*;
 import com.drathonix.dubiousdevices.util.DubiousDirectories;
-import com.drathonix.dubiousdevices.recipe.RecipeHelper;
 import com.google.common.collect.Lists;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class RecipeHandlers {
-    public static final MappedRecipeHandler.Named<CrusherRecipe> CRUSHER = new MappedRecipeHandler.Named<>("Crusher", DubiousDirectories.ddrecipes);
+    public static final Map<String, RecipeHandler<?>> handlers = new HashMap<>();
+    public static final MappedRecipeHandler.Named<CrusherRecipe> CRUSHER = add(new MappedRecipeHandler.Named<CrusherRecipe>("Crusher", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS),CrusherRecipe::new));
+    private static <T extends ItemRecipe<T>> MappedRecipeHandler.Named<T> add(MappedRecipeHandler.Named<T> rh) {
+        handlers.put(rh.name.toLowerCase(Locale.ROOT),rh);
+        handlers.put(rh.name,rh);
+        return rh;
+    }
+
     static{
         CRUSHER.initIfDNE(()-> {
             Iterator<Recipe> recipes = Bukkit.recipeIterator();
@@ -30,7 +33,7 @@ public class RecipeHandlers {
                         ItemStack outputStack = r.getResult();
                         if (RecipeHelper.isIrreversibleCraftingRecipe(r)) {
                             if (inputStack.getAmount() == 1) {
-                                CRUSHER.addRecipe(new ExtraDropsCrusherRecipe(mapStacks, Lists.newArrayList(r.getResult()),true));
+                                CRUSHER.addRecipe(new CrusherRecipe(mapStacks, Lists.newArrayList(r.getResult()),Lists.newArrayList(DDRecipeFlags.NONBT.name,DDRecipeFlags.ALLOWEXTRAOUTPUTS.name)));
                             }
                             else if(outputStack.getAmount() == 1){
                                 CRUSHER.addRecipe(new CrusherRecipe(Lists.newArrayList(outputStack),mapStacks,true));
@@ -43,11 +46,6 @@ public class RecipeHandlers {
                     }
                 }
             });
-        },(r)->{
-            if(r.flags.contains(DDRecipeFlags.ALLOWEXTRAOUTPUTS)){
-                return new ExtraDropsCrusherRecipe(r.inputs,r.outputs);
-            }
-            else return new CrusherRecipe(r.inputs,r.outputs);
-        });
+        },(r)-> new CrusherRecipe(r.inputs,r.outputs,r.flags));
     }
 }

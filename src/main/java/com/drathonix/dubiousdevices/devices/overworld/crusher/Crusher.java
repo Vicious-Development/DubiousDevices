@@ -77,7 +77,6 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
 
     @Override
     protected void invalidate(MultiBlockChunkDataHandler dat) {
-        System.out.println("Invalidated");
         InventoryWrapper iw = getInvWrapper(io1);
         if(iw != null) iw.stopListening(this);
         iw = getInvWrapper(io2);
@@ -106,7 +105,6 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     @Override
     public void tick() {
         super.tick();
-        System.out.println("Ticking: " + timer);
         //Logic. No recipe, check the input inventory. Still no recipe, stop ticking.
         if(timer == 0){
             initInputInv();
@@ -189,7 +187,7 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     private boolean output(){
         initOutputInv();
         if(storedOutputs.size() == 0){
-            if(recipe instanceof ExtraDropsCrusherRecipe){
+            if(recipe.doExtraOutputs){
                 storedOutputs = recipe.cloneOutputs();
                 if(maxExtraDrops > 0) {
                     storedOutputs.forEach((s) -> {
