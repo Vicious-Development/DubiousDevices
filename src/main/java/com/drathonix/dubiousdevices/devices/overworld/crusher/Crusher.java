@@ -1,29 +1,29 @@
 package com.drathonix.dubiousdevices.devices.overworld.crusher;
 
 import com.drathonix.dubiousdevices.DubiousDevices;
-import com.drathonix.dubiousdevices.blockinstances.MaterialOnlyBlockInstance;
-import com.drathonix.dubiousdevices.blockinstances.SolidBlockInstance;
 import com.drathonix.dubiousdevices.devices.overworld.machine.IOTypes;
 import com.drathonix.dubiousdevices.devices.overworld.machine.MaterialValue;
-import com.drathonix.dubiousdevices.interfaces.INotifiable;
-import com.drathonix.dubiousdevices.interfaces.INotifier;
-import com.drathonix.dubiousdevices.inventory.wrapper.EInventoryUpdateStatus;
-import com.drathonix.dubiousdevices.inventory.wrapper.InventoryWrapper;
-import com.drathonix.dubiousdevices.inventory.wrapper.InventoryWrapperChunkHandler;
 import com.drathonix.dubiousdevices.registry.RecipeHandlers;
-import com.drathonix.dubiousdevices.util.DubiousUtil;
-import com.drathonix.dubiousdevices.util.NMSHelper;
 import com.google.common.collect.Lists;
 import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
-import com.vicious.viciouslibkit.block.BlockInstance;
 import com.vicious.viciouslibkit.block.BlockTemplate;
-import com.vicious.viciouslibkit.block.MultipleBlockInstances;
+import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
+import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceMaterialOnly;
+import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceMultiple;
+import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockChunkDataHandler;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
 import com.vicious.viciouslibkit.data.worldstorage.PluginWorldData;
 import com.vicious.viciouslibkit.inventory.InventoryHelper;
+import com.vicious.viciouslibkit.inventory.wrapper.EInventoryUpdateStatus;
+import com.vicious.viciouslibkit.inventory.wrapper.InventoryWrapper;
+import com.vicious.viciouslibkit.inventory.wrapper.InventoryWrapperChunkHandler;
 import com.vicious.viciouslibkit.services.multiblock.TickableMultiBlock;
 import com.vicious.viciouslibkit.util.ChunkPos;
+import com.vicious.viciouslibkit.util.LibKitUtil;
+import com.vicious.viciouslibkit.util.NMSHelper;
+import com.vicious.viciouslibkit.util.interfaces.INotifiable;
+import com.vicious.viciouslibkit.util.interfaces.INotifier;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -85,8 +85,8 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     }
     @Override
     public void validate() {
-        io1 = DubiousUtil.orientate(iol,facing.value(),flipped.value());
-        io2 = DubiousUtil.orientate(iol,facing.value(),!flipped.value());
+        io1 = LibKitUtil.orientate(iol,facing.value(),flipped.value());
+        io2 = LibKitUtil.orientate(iol,facing.value(),!flipped.value());
         io1 = new SQLVector3i(xyz.value().x + io1.x,xyz.value().y + io1.y,xyz.value().z + io1.z);
         io2 = new SQLVector3i(xyz.value().x + io2.x,xyz.value().y + io2.y,xyz.value().z + io2.z);
         Block b = world.getBlockAt(xyz.value().x,xyz.value().y-1,xyz.value().z);
@@ -286,35 +286,35 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     public static BlockTemplate template(){
         BlockInstance n = null;
         BlockInstance a = BlockInstance.AIR;
-        BlockInstance b = new MultipleBlockInstances()
-                .add(new MaterialOnlyBlockInstance(Material.DEEPSLATE))
-                .add(new MaterialOnlyBlockInstance(Material.DEEPSLATE_BRICKS))
-                .add(new MaterialOnlyBlockInstance(Material.DEEPSLATE_TILES))
-                .add(new MaterialOnlyBlockInstance(Material.COBBLED_DEEPSLATE))
-                .add(new MaterialOnlyBlockInstance(Material.CHISELED_DEEPSLATE))
-                .add(new MaterialOnlyBlockInstance(Material.POLISHED_DEEPSLATE))
-                .add(new MaterialOnlyBlockInstance(Material.CRACKED_DEEPSLATE_BRICKS))
-                .add(new MaterialOnlyBlockInstance(Material.CRACKED_DEEPSLATE_TILES));
-        BlockInstance c = new MultipleBlockInstances()
+        BlockInstance b = new BlockInstanceMultiple()
+                .add(new BlockInstanceMaterialOnly(Material.DEEPSLATE))
+                .add(new BlockInstanceMaterialOnly(Material.DEEPSLATE_BRICKS))
+                .add(new BlockInstanceMaterialOnly(Material.DEEPSLATE_TILES))
+                .add(new BlockInstanceMaterialOnly(Material.COBBLED_DEEPSLATE))
+                .add(new BlockInstanceMaterialOnly(Material.CHISELED_DEEPSLATE))
+                .add(new BlockInstanceMaterialOnly(Material.POLISHED_DEEPSLATE))
+                .add(new BlockInstanceMaterialOnly(Material.CRACKED_DEEPSLATE_BRICKS))
+                .add(new BlockInstanceMaterialOnly(Material.CRACKED_DEEPSLATE_TILES));
+        BlockInstance c = new BlockInstanceMultiple()
                 .add(new BlockInstance(Material.DEEPSLATE_BRICK_SLAB).slabType(Slab.Type.BOTTOM))
                 .add(new BlockInstance(Material.DEEPSLATE_TILE_SLAB).slabType(Slab.Type.BOTTOM))
                 .add(new BlockInstance(Material.POLISHED_DEEPSLATE_SLAB).slabType(Slab.Type.BOTTOM))
                 .add(new BlockInstance(Material.COBBLED_DEEPSLATE_SLAB).slabType(Slab.Type.BOTTOM))
                 ;
-        BlockInstance d = new MultipleBlockInstances()
+        BlockInstance d = new BlockInstanceMultiple()
                 .add(new BlockInstance(Material.DEEPSLATE_BRICK_SLAB).slabType(Slab.Type.TOP))
                 .add(new BlockInstance(Material.DEEPSLATE_TILE_SLAB).slabType(Slab.Type.TOP))
                 .add(new BlockInstance(Material.POLISHED_DEEPSLATE_SLAB).slabType(Slab.Type.TOP))
                 .add(new BlockInstance(Material.COBBLED_DEEPSLATE_SLAB).slabType(Slab.Type.TOP))
                 ;
-        BlockInstance i = new MultipleBlockInstances()
+        BlockInstance i = new BlockInstanceMultiple()
                 .add(new BlockInstance(Material.HOPPER))
                 .add(new BlockInstance(Material.TRAPPED_CHEST))
                 .add(new BlockInstance(Material.BARREL))
                 .add(new BlockInstance(Material.CHEST))
                 .add(new BlockInstance(Material.DISPENSER))
                 .add(new BlockInstance(Material.DROPPER));
-        BlockInstance f = new MultipleBlockInstances()
+        BlockInstance f = new BlockInstanceMultiple()
                 .add(new BlockInstance(Material.COPPER_BLOCK))
                 .add(new BlockInstance(Material.WEATHERED_COPPER))
                 .add(new BlockInstance(Material.EXPOSED_COPPER))
@@ -333,7 +333,7 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
                 .add(new BlockInstance(Material.WAXED_OXIDIZED_CUT_COPPER))
                 ;
         BlockInstance p = new BlockInstance(Material.STICKY_PISTON).facing(BlockFace.DOWN);
-        SolidBlockInstance k = new SolidBlockInstance();
+        BlockInstanceSolid k = new BlockInstanceSolid();
         return BlockTemplate.start()
                 .x(n,b,c,b,n).z()
                 .x(i,b,b,b,i).z()

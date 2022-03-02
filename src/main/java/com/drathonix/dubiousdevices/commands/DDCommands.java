@@ -2,10 +2,10 @@ package com.drathonix.dubiousdevices.commands;
 
 import com.drathonix.dubiousdevices.guis.RecipeCreation;
 import com.drathonix.dubiousdevices.guis.RecipeView;
-import com.drathonix.dubiousdevices.inventory.gui.CustomGUIInventory;
 import com.drathonix.dubiousdevices.recipe.RecipeHandler;
 import com.drathonix.dubiousdevices.registry.RecipeHandlers;
 import com.vicious.viciouslib.util.TriConsumer;
+import com.vicious.viciouslibkit.inventory.gui.CustomGUIInventory;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

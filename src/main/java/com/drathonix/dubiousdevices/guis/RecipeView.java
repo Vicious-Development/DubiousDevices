@@ -1,10 +1,10 @@
 package com.drathonix.dubiousdevices.guis;
 
-import com.drathonix.dubiousdevices.inventory.gui.CustomGUIInventory;
-import com.drathonix.dubiousdevices.inventory.gui.GUIElement;
-import com.drathonix.dubiousdevices.inventory.gui.TickableGUIElement;
 import com.drathonix.dubiousdevices.recipe.ItemRecipe;
 import com.drathonix.dubiousdevices.recipe.RecipeHandler;
+import com.vicious.viciouslibkit.inventory.gui.CustomGUIInventory;
+import com.vicious.viciouslibkit.inventory.gui.GUIElement;
+import com.vicious.viciouslibkit.inventory.gui.TickableGUIElement;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

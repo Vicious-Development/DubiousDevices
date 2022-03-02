@@ -1,7 +1,7 @@
 package com.drathonix.dubiousdevices.devices.end.enderizer;
 
-import com.vicious.viciouslibkit.block.BlockInstance;
 import com.vicious.viciouslibkit.block.BlockTemplate;
+import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
 import com.vicious.viciouslibkit.util.ChunkPos;
 import org.bukkit.Axis;

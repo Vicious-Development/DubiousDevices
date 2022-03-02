@@ -1,10 +1,10 @@
 package com.drathonix.dubiousdevices.guis;
 
-import com.drathonix.dubiousdevices.inventory.gui.CustomGUIInventory;
-import com.drathonix.dubiousdevices.inventory.gui.GUIElement;
 import com.drathonix.dubiousdevices.recipe.ItemRecipe;
 import com.drathonix.dubiousdevices.recipe.RecipeFlag;
 import com.drathonix.dubiousdevices.recipe.RecipeHandler;
+import com.vicious.viciouslibkit.inventory.gui.CustomGUIInventory;
+import com.vicious.viciouslibkit.inventory.gui.GUIElement;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -12,7 +12,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecipeCreation {
     public static <T extends ItemRecipe<T>> CustomGUIInventory inputsPage(String deviceName, RecipeHandler<T> handler){
