@@ -99,8 +99,11 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
         Block b = world.getBlockAt(xyz.value().x,xyz.value().y-1,xyz.value().z);
         maxExtraDrops = MaterialValue.getMaterialValue(b.getType());
         Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE,()->{
-            getInvWrapper(io1).listen(this);
-            getInvWrapper(io2).listen(this);
+            try {
+                getInvWrapper(io1).listen(this);
+                getInvWrapper(io2).listen(this);
+            } catch (Exception ignored){}
+            //Exception is caused by unloaded chunks, just ignore it it'll be fine.
         },1);
         super.validate();
     }
