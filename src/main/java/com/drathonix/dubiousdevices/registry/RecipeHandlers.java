@@ -33,7 +33,10 @@ public class RecipeHandlers {
                         ItemStack outputStack = r.getResult();
                         if (RecipeHelper.isIrreversibleCraftingRecipe(r)) {
                             if (inputStack.getAmount() == 1) {
-                                CRUSHER.addRecipe(new CrusherRecipe(mapStacks, Lists.newArrayList(r.getResult()),Lists.newArrayList(DDRecipeFlags.NONBT.name,DDRecipeFlags.ALLOWEXTRAOUTPUTS.name)));
+                                if(RecipeHelper.doesNotHaveDupeRoute(r)) {
+                                    CRUSHER.addRecipe(new CrusherRecipe(mapStacks, Lists.newArrayList(r.getResult()), Lists.newArrayList(DDRecipeFlags.NONBT.name, DDRecipeFlags.ALLOWEXTRAOUTPUTS.name)));
+                                }
+                                else CRUSHER.addRecipe(new CrusherRecipe(mapStacks, Lists.newArrayList(r.getResult()), true));
                             }
                             else if(outputStack.getAmount() == 1){
                                 CRUSHER.addRecipe(new CrusherRecipe(Lists.newArrayList(outputStack),mapStacks,true));

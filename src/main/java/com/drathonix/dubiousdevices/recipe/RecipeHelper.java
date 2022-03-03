@@ -1,6 +1,7 @@
 package com.drathonix.dubiousdevices.recipe;
 
 import com.google.common.collect.Lists;
+import com.vicious.viciouslibkit.item.StackType;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
@@ -8,6 +9,7 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
+import java.util.List;
 import java.util.Map;
 
 public class RecipeHelper {
@@ -24,14 +26,8 @@ public class RecipeHelper {
         return stackMap;
     }
     public static boolean isIrreversibleCraftingRecipe(Recipe r){
-        ItemStackMap ingredients;
-        if(r instanceof ShapedRecipe){
-            ingredients = getShapedIngredients((ShapedRecipe) r);
-        }
-        else if(r instanceof ShapelessRecipe){
-            ingredients = getShapelessIngredients((ShapelessRecipe) r);
-        }
-        else return false;
+        ItemStackMap ingredients = getIngredients(r);
+        if(ingredients == null) return false;
         ItemStack[] recipe = new ItemStack[9];
         for (int i = 0; i < Math.min(r.getResult().getAmount(),9); i++) {
             recipe[i] = new ItemStack(r.getResult().getType());
@@ -39,6 +35,29 @@ public class RecipeHelper {
         Recipe undo = Bukkit.getCraftingRecipe(recipe,Bukkit.getWorlds().get(0));
         if(undo == null) return true;
         return !ingredients.hasAll(Lists.newArrayList(undo.getResult()));
+    }
+
+    /**
+     * Very rudimentary, only checks a very short line of recipes. Should cover most of MC's recipes though.
+     */
+    public static boolean doesNotHaveDupeRoute(Recipe r){
+        ItemStackMap ingredients = getIngredients(r);
+        ItemStack[] recipe = new ItemStack[9];
+        for (int i = 0; i < Math.min(r.getResult().getAmount(),9); i++) {
+            recipe[i] = new ItemStack(r.getResult().getType());
+        }
+        Recipe undo = Bukkit.getCraftingRecipe(recipe,Bukkit.getWorlds().get(0));
+        if(undo == null) return true;
+        for (ItemStack stack : ingredients.values()) {
+            List<Recipe> recipesFor = Bukkit.getRecipesFor(stack);
+            for (Recipe value : recipesFor) {
+                ingredients = getIngredients(value);
+                if(ingredients == null) continue;
+                System.out.println(value.getResult() + " = " + ingredients.values());
+                if(ingredients.containsKey(new StackType(undo.getResult()))) return false;
+            }
+        }
+        return true;
     }
     public static ItemStackMap getShapelessIngredients(ShapelessRecipe recipe) {
         ItemStackMap stackMap = new ItemStackMap();

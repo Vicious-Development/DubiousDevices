@@ -78,9 +78,16 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     @Override
     protected void invalidate(MultiBlockChunkDataHandler dat) {
         InventoryWrapper iw = getInvWrapper(io1);
-        if(iw != null) iw.stopListening(this);
+        InventoryWrapperChunkHandler ch = PluginWorldData.getChunkDataHandler(world,ChunkPos.fromBlockPos(xyz.value()),InventoryWrapperChunkHandler.class);
+        if(iw != null){
+            iw.stopListening(this);
+            ch.removeWrapper(io1);
+        }
         iw = getInvWrapper(io2);
-        if(iw != null) iw.stopListening(this);
+        if(iw != null){
+            iw.stopListening(this);
+            ch.removeWrapper(io2);
+        }
         super.invalidate(dat);
     }
     @Override
@@ -174,8 +181,8 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
         for (int i = 0; i < contents.length; i++) {
             if(contents[i] == null) continue;
             if(contents[i].getType() == stack.getType()){
-                int fcount = count - stack.getAmount();
-                contents[i].setAmount(Math.max(0,stack.getAmount()-count));
+                int fcount = count - contents[i].getAmount();
+                contents[i].setAmount(Math.max(0,contents[i].getAmount()-count));
                 count = fcount;
             }
         }
@@ -240,7 +247,7 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
             }
             else {
                 inputs = getInventory(io2);
-                inputs = getInventory(io1);
+                outputs = getInventory(io1);
             }
         }
         else{
