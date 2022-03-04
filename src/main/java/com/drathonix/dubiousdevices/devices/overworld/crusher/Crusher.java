@@ -1,5 +1,6 @@
 package com.drathonix.dubiousdevices.devices.overworld.crusher;
 
+import com.drathonix.dubiousdevices.DubiousCFG;
 import com.drathonix.dubiousdevices.DubiousDevices;
 import com.drathonix.dubiousdevices.devices.overworld.machine.IOTypes;
 import com.drathonix.dubiousdevices.devices.overworld.machine.MaterialValue;
@@ -92,6 +93,8 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     }
     @Override
     public void validate() {
+        super.validate();
+        if(!DubiousCFG.getInstance().crusherEnabled.value()) return;
         io1 = LibKitUtil.orientate(iol,facing.value(),flipped.value());
         io2 = LibKitUtil.orientate(iol,facing.value(),!flipped.value());
         io1 = new SQLVector3i(xyz.value().x + io1.x,xyz.value().y + io1.y,xyz.value().z + io1.z);
@@ -105,7 +108,6 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
             } catch (Exception ignored){}
             //Exception is caused by unloaded chunks, just ignore it it'll be fine.
         },1);
-        super.validate();
     }
 
     public InventoryWrapper getInvWrapper(SQLVector3i p){
@@ -182,6 +184,7 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
         ItemStack[] contents = inputs.getContents();
         int count = stack.getAmount();
         for (int i = 0; i < contents.length; i++) {
+            if(count <= 0) break;
             if(contents[i] == null) continue;
             if(contents[i].getType() == stack.getType()){
                 int fcount = count - contents[i].getAmount();
@@ -200,9 +203,16 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
             if(recipe.doExtraOutputs){
                 storedOutputs = recipe.cloneOutputs();
                 if(maxExtraDrops > 0) {
-                    storedOutputs.forEach((s) -> {
-                        s.setAmount(s.getAmount() + DubiousDevices.random.nextInt(maxExtraDrops + 1));
-                    });
+                    for (int i = 0; i < storedOutputs.size(); i++) {
+                        ItemStack s = storedOutputs.get(i);
+                        int amount = DubiousDevices.random.nextInt(maxExtraDrops+1);
+                        if(amount != 0){
+                            ItemStack s2 = s.clone();
+                            s2.setAmount(amount);
+                            storedOutputs.add(0,s2);
+                            i++;
+                        }
+                    }
                 }
             }
             else storedOutputs = recipe.cloneOutputs();
@@ -226,7 +236,7 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
 
     @Override
     public boolean tickOnInit() {
-        return true;
+        return DubiousCFG.getInstance().crusherEnabled.value();
     }
 
 

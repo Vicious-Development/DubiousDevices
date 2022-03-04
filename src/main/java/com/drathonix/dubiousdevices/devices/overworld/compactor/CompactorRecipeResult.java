@@ -1,4 +1,4 @@
-package com.drathonix.dubiousdevices.devices.compactor;
+package com.drathonix.dubiousdevices.devices.overworld.compactor;
 
 import org.bukkit.inventory.ItemStack;
 

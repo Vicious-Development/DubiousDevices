@@ -17,7 +17,7 @@ public class DubiousDirectories {
     public static void initializePluginDependents(){
         pluginsDirectory = FileUtil.createDirectoryIfDNE(LibKitDirectories.rootDir() + "/plugins");
         pluginConfigDirectory = FileUtil.createDirectoryIfDNE(pluginsDirectory.toAbsolutePath() + "/config");
-        dubiousConfigPath = Paths.get(pluginConfigDirectory.toAbsolutePath() + "/dubiousConfigPath.json");
+        dubiousConfigPath = Paths.get(pluginConfigDirectory.toAbsolutePath() + "/dubiousdevices.json");
         recipes = FileUtil.createDirectoryIfDNE(pluginsDirectory.toAbsolutePath() + "/" + "recipes");
         ddrecipes = FileUtil.createDirectoryIfDNE(recipes.toAbsolutePath() + "/" + "dubiousdevices");
 

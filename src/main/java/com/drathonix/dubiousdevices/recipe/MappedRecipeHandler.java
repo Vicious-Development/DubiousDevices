@@ -1,5 +1,6 @@
 package com.drathonix.dubiousdevices.recipe;
 
+import com.drathonix.dubiousdevices.DubiousCFG;
 import com.drathonix.dubiousdevices.DubiousDevices;
 import com.vicious.viciouslib.util.FileUtil;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
@@ -45,6 +46,14 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
             List<T> recList = recipeMap.get(rin.getType());
             recList.remove(recipe);
             if (recList.isEmpty()) recipeMap.remove(rin.getType());
+        }
+    }
+    public void addRecipeToFront(T recipe) {
+        super.addRecipeToFront(recipe);
+        for (ItemStack input : recipe.inputs) {
+            recipeMap.putIfAbsent(input.getType(),new ArrayList<>());
+            List<T> list = recipeMap.get(input.getType());
+            if(!list.contains(recipe)) list.add(recipe);
         }
     }
     public void addRecipe(T recipe){
@@ -124,16 +133,40 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
                 }
             });
         }
+        public void overwrite() {
+            try {
+                Files.write(destination,"".getBytes(StandardCharsets.UTF_8),StandardOpenOption.TRUNCATE_EXISTING);
+            } catch (IOException e) {
+                DubiousDevices.LOGGER.warning("Failed to clear recipe script file: " + e.getMessage());
+                e.printStackTrace();
+            }
+            recipes.forEach((r)-> {
+                try {
+                    Files.write(destination,r.serialize().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(destination,"\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                } catch (IOException e) {
+                    DubiousDevices.LOGGER.warning("Failed to write a recipe: " + r + " caused by " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
+        }
+
 
         @Override
         public void addRecipeAndWrite(T r) {
-            addRecipe(r);
-            try {
-                Files.write(destination,r.serialize().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                Files.write(destination,"\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-            } catch (IOException e) {
-                DubiousDevices.LOGGER.warning("Failed to write a recipe: " + r);
-                e.printStackTrace();
+            if (DubiousCFG.getInstance().addRecipesToFront.value()){
+                addRecipeToFront(r);
+                overwrite();
+            }
+            else{
+                addRecipe(r);
+                try {
+                    Files.write(destination, r.serialize().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                    Files.write(destination, "\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                } catch (IOException e) {
+                    DubiousDevices.LOGGER.warning("Failed to write a recipe: " + r + " caused by: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         }
     }

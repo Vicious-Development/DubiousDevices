@@ -1,4 +1,4 @@
-package com.drathonix.dubiousdevices.devices.compactor;
+package com.drathonix.dubiousdevices.devices.overworld.compactor;
 
 import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;

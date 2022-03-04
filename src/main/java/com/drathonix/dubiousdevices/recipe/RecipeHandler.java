@@ -45,4 +45,8 @@ public abstract class RecipeHandler<T extends ItemRecipe<T>> {
     }
 
     public abstract void addRecipeAndWrite(T recipe);
+
+    protected void addRecipeToFront(T recipe) {
+        recipes.add(0,recipe);
+    }
 }
