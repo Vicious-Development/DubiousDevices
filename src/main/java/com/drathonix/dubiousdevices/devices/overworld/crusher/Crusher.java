@@ -1,5 +1,6 @@
 package com.drathonix.dubiousdevices.devices.overworld.crusher;
 
+import com.drathonix.dubiousdevices.DDBlockInstances;
 import com.drathonix.dubiousdevices.DubiousCFG;
 import com.drathonix.dubiousdevices.DubiousDevices;
 import com.drathonix.dubiousdevices.devices.overworld.machine.IOTypes;
@@ -306,52 +307,11 @@ public class Crusher extends TickableMultiBlock implements INotifiable<EInventor
     public static BlockTemplate template(){
         BlockInstance n = null;
         BlockInstance a = BlockInstance.AIR;
-        BlockInstance b = new BlockInstanceMultiple()
-                .add(new BlockInstanceMaterialOnly(Material.DEEPSLATE))
-                .add(new BlockInstanceMaterialOnly(Material.DEEPSLATE_BRICKS))
-                .add(new BlockInstanceMaterialOnly(Material.DEEPSLATE_TILES))
-                .add(new BlockInstanceMaterialOnly(Material.COBBLED_DEEPSLATE))
-                .add(new BlockInstanceMaterialOnly(Material.CHISELED_DEEPSLATE))
-                .add(new BlockInstanceMaterialOnly(Material.POLISHED_DEEPSLATE))
-                .add(new BlockInstanceMaterialOnly(Material.CRACKED_DEEPSLATE_BRICKS))
-                .add(new BlockInstanceMaterialOnly(Material.CRACKED_DEEPSLATE_TILES));
-        BlockInstance c = new BlockInstanceMultiple()
-                .add(new BlockInstance(Material.DEEPSLATE_BRICK_SLAB).slabType(Slab.Type.BOTTOM))
-                .add(new BlockInstance(Material.DEEPSLATE_TILE_SLAB).slabType(Slab.Type.BOTTOM))
-                .add(new BlockInstance(Material.POLISHED_DEEPSLATE_SLAB).slabType(Slab.Type.BOTTOM))
-                .add(new BlockInstance(Material.COBBLED_DEEPSLATE_SLAB).slabType(Slab.Type.BOTTOM))
-                ;
-        BlockInstance d = new BlockInstanceMultiple()
-                .add(new BlockInstance(Material.DEEPSLATE_BRICK_SLAB).slabType(Slab.Type.TOP))
-                .add(new BlockInstance(Material.DEEPSLATE_TILE_SLAB).slabType(Slab.Type.TOP))
-                .add(new BlockInstance(Material.POLISHED_DEEPSLATE_SLAB).slabType(Slab.Type.TOP))
-                .add(new BlockInstance(Material.COBBLED_DEEPSLATE_SLAB).slabType(Slab.Type.TOP))
-                ;
-        BlockInstance i = new BlockInstanceMultiple()
-                .add(new BlockInstance(Material.HOPPER))
-                .add(new BlockInstance(Material.TRAPPED_CHEST))
-                .add(new BlockInstance(Material.BARREL))
-                .add(new BlockInstance(Material.CHEST))
-                .add(new BlockInstance(Material.DISPENSER))
-                .add(new BlockInstance(Material.DROPPER));
-        BlockInstance f = new BlockInstanceMultiple()
-                .add(new BlockInstance(Material.COPPER_BLOCK))
-                .add(new BlockInstance(Material.WEATHERED_COPPER))
-                .add(new BlockInstance(Material.EXPOSED_COPPER))
-                .add(new BlockInstance(Material.OXIDIZED_COPPER))
-                .add(new BlockInstance(Material.CUT_COPPER))
-                .add(new BlockInstance(Material.WEATHERED_CUT_COPPER))
-                .add(new BlockInstance(Material.EXPOSED_CUT_COPPER))
-                .add(new BlockInstance(Material.OXIDIZED_CUT_COPPER))
-                .add(new BlockInstance(Material.WAXED_COPPER_BLOCK))
-                .add(new BlockInstance(Material.WAXED_WEATHERED_COPPER))
-                .add(new BlockInstance(Material.WAXED_EXPOSED_COPPER))
-                .add(new BlockInstance(Material.WAXED_OXIDIZED_COPPER))
-                .add(new BlockInstance(Material.WAXED_CUT_COPPER))
-                .add(new BlockInstance(Material.WAXED_WEATHERED_CUT_COPPER))
-                .add(new BlockInstance(Material.WAXED_EXPOSED_CUT_COPPER))
-                .add(new BlockInstance(Material.WAXED_OXIDIZED_CUT_COPPER))
-                ;
+        BlockInstance b = DDBlockInstances.ALLDEEPSLATE;
+        BlockInstance c = DDBlockInstances.ALLDEEPSLATESLABSBOTTOM;
+        BlockInstance d = DDBlockInstances.ALLDEEPSLATESLABSTOP;
+        BlockInstance i = DDBlockInstances.IOBLOCKS;
+        BlockInstance f = DDBlockInstances.ALLCOPPERBLOCKS;
         BlockInstance p = new BlockInstance(Material.STICKY_PISTON).facing(BlockFace.DOWN);
         BlockInstanceSolid k = new BlockInstanceSolid();
         return BlockTemplate.start()
