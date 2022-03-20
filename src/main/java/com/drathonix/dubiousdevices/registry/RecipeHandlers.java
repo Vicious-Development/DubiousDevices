@@ -16,7 +16,9 @@ import java.util.*;
 public class RecipeHandlers {
     public static final Map<String, RecipeHandler<?>> handlers = new HashMap<>();
     public static final MappedRecipeHandler.Named<CrusherRecipe> CRUSHER = add(new MappedRecipeHandler.Named<CrusherRecipe>("Crusher", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS),CrusherRecipe::new));
-    public static final MappedRecipeHandler.Named<MetalSmeltingRecipe> METALSMELTING = add(new MappedRecipeHandler.Named<MetalSmeltingRecipe>("MetalSmelting", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new),"HeavyFurnace");
+    public static final MappedRecipeHandler.Named<MetalSmeltingRecipe> METALSMELTING = add(new MappedRecipeHandler.Named<MetalSmeltingRecipe>("MetalSmelting", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new));
+    public static final MappedRecipeHandler.Named<MetalSmeltingRecipe> HEAVYFURNACE = add(new MappedRecipeHandler.Named<MetalSmeltingRecipe>("HeavyFurnace", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new));
+    public static final CombinedRecipeHandler<MetalSmeltingRecipe> HEAVYFURNACECOMBINEDHANDLER = new CombinedRecipeHandler<>(Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new,METALSMELTING,HEAVYFURNACE);
 
     private static <T extends ItemRecipe<T>> MappedRecipeHandler.Named<T> add(MappedRecipeHandler.Named<T> rh, String... altNames) {
         handlers.put(rh.name.toLowerCase(Locale.ROOT),rh);

@@ -1,30 +1,36 @@
 package com.drathonix.dubiousdevices.devices.overworld.heavyfurnace;
 
 import com.drathonix.dubiousdevices.DDBlockInstances;
+import com.drathonix.dubiousdevices.devices.overworld.machine.DeviceItemIO;
 import com.drathonix.dubiousdevices.devices.overworld.machine.MachineStatus;
 import com.drathonix.dubiousdevices.devices.overworld.redstone.HeatMeter;
 import com.drathonix.dubiousdevices.devices.overworld.redstone.IFurnaceFuel;
+import com.drathonix.dubiousdevices.recipe.RecipeHandler;
+import com.drathonix.dubiousdevices.registry.RecipeHandlers;
+import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
 import com.vicious.viciouslibkit.block.BlockTemplate;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceMaterialOnly;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
-import com.vicious.viciouslibkit.services.multiblock.TickableMultiBlock;
 import com.vicious.viciouslibkit.util.ChunkPos;
+import com.vicious.viciouslibkit.util.LibKitUtil;
 import com.vicious.viciouslibkit.util.interfaces.INotifiable;
 import com.vicious.viciouslibkit.util.interfaces.INotifier;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class HeavyFurnace extends TickableMultiBlock implements IFurnaceFuel, INotifier<MachineStatus> {
+public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements IFurnaceFuel, INotifier<MachineStatus> {
     private List<INotifiable<MachineStatus>> connectedHeatMeters = new ArrayList<>();
+    private List<Inventory> fuelInput = new ArrayList<>();
     private int fuelTicksRemaining = 0;
     private int maxFuelTicks = 0;
     private ItemStack fuel = null;
@@ -35,6 +41,57 @@ public class HeavyFurnace extends TickableMultiBlock implements IFurnaceFuel, IN
     public HeavyFurnace(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
         super(type, w, id, cpos);
     }
+
+    @Override
+    protected void process() {
+
+    }
+
+    @Override
+    protected RecipeHandler<MetalSmeltingRecipe> getRecipeHandler() {
+        return RecipeHandlers.HEAVYFURNACECOMBINEDHANDLER;
+    }
+
+    @Override
+    public void initOutputInvs() {
+        if(outputs.isEmpty()){
+            SQLVector3i l = LibKitUtil.orientate(new SQLVector3i(0, -1, 1), facing.value(), flipped.value());
+            outputs.add(getInventory(xyz.value().add(l.x,l.y,l.z)));
+            outputs.add(getInventory(xyz.value().add(0,l.y,0)));
+        }
+        else{
+            for (int i = 0; i < outputs.size(); i++) {
+                outputs.set(i,getInventory(outputs.get(i).getLocation()));
+            }
+        }
+    }
+
+    @Override
+    public void initInputInvs() {
+        if(inputs.isEmpty()) {
+            SQLVector3i inputx1 = LibKitUtil.orientate(new SQLVector3i(-2, 2, -1), facing.value(), flipped.value());
+            SQLVector3i inputx2 = LibKitUtil.orientate(new SQLVector3i(2, 2, -1), facing.value(), flipped.value());
+            inputx1 = xyz.value().add(inputx1.x, inputx1.y, inputx1.z);
+            inputx2 = xyz.value().add(inputx2.x, inputx2.y, inputx2.z);
+            addIfNonNull(getInventory(inputx1));
+            addIfNonNull(getInventory(inputx2));
+            addIfNonNull(getInventory(inputx1.add(0, 1, 0)));
+            addIfNonNull(getInventory(inputx2.add(0, 1, 0)));
+            initOutputInvs();
+        }
+        else{
+            for (int i = 0; i < inputs.size(); i++) {
+                inputs.set(i,getInventory(inputs.get(i).getLocation()));
+            }
+        }
+    }
+    public void initFuelInventories(){
+
+    }
+    private void addIfNonNull(Inventory inv){
+        if(inv != null) inputs.add(inv);
+    }
+
     @Override
     public int getFuelRemaining() {
         return fuelTicksRemaining;

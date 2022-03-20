@@ -45,11 +45,6 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> implements INotifiable<
     private SQLVector3i io1;
     private SQLVector3i io2;
 
-    @Override
-    public void save() {
-        super.save();
-    }
-
     public Crusher(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
         super(mbType, w, l, dir, flipped, id);
     }
@@ -167,28 +162,32 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> implements INotifiable<
     public int hashCode() {
         return Objects.hash(ID);
     }
-    public void initInputInv(){
-        if(inputs == null){
+    public void initInputInvs(){
+        if(inputs.isEmpty()){
             Block b1 = world.getBlockAt(io1.x,io1.y,io1.z);
             if(IOTypes.isInput(b1.getType())){
-                inputs = getInventory(io1);
-                outputs = getInventory(io2);
+                inputs.add(getInventory(io1));
+                outputs.add(getInventory(io2));
             }
             else {
-                inputs = getInventory(io2);
-                outputs = getInventory(io1);
+                inputs.add(getInventory(io2));
+                outputs.add(getInventory(io1));
             }
         }
         else{
-            inputs = getInventory(inputs.getLocation());
+            for (int i = 0; i < inputs.size(); i++) {
+                inputs.set(i,getInventory(inputs.get(i).getLocation()));
+            }
         }
     }
-    public void initOutputInv() {
-        if(outputs == null){
-            initInputInv();
+    public void initOutputInvs() {
+        if(outputs.isEmpty()){
+            initInputInvs();
         }
         else{
-            outputs = getInventory(outputs.getLocation());
+            for (int i = 0; i < outputs.size(); i++) {
+                outputs.set(i,getInventory(outputs.get(i).getLocation()));
+            }
         }
     }
 

@@ -12,11 +12,12 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
 import java.util.UUID;
 
 public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachine{
-    public Inventory inputs;
-    public Inventory outputs;
+    public List<Inventory> inputs;
+    public List<Inventory> outputs;
     public T recipe = null;
 
     public DeviceItemIO(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
@@ -31,7 +32,7 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
         super.tick();
         //Logic. No recipe, check the input inventory. Still no recipe, stop ticking.
         if(timer == 0){
-            initInputInv();
+            initInputInvs();
             if(inputs != null) {
                 if (!checkRecipe(mapInventory(inputs))) {
                     removeFromTicker();
@@ -63,15 +64,10 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
     protected abstract RecipeHandler<T> getRecipeHandler();
 
     public void input(){
-        initInputInv();
+        initInputInvs();
         if(!recipe.ignoresNBT()) {
             for (ItemStack input : recipe.getInputs()) {
-                inputs.removeItem(input);
-            }
-        }
-        else {
-            for (ItemStack input : recipe.getInputs()) {
-                extractIgnoreNBT(input,inputs);
+                removeItem(inputs,input,recipe.ignoresNBT());
             }
         }
         storedItemInputs = recipe.cloneInputs();
@@ -82,16 +78,19 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
      * Override applyOutputEffects() to do special stuff.
      */
     public boolean output(){
-        initOutputInv();
+        initOutputInvs();
         if(storedItemOutputs.size() == 0){
             storedItemOutputs = recipe.cloneOutputs();
             applyOutputEffects();
         }
-        InventoryHelper.moveFrom(outputs, storedItemOutputs);
+        for (Inventory output : outputs) {
+            if(storedItemOutputs.size() == 0) break;
+            InventoryHelper.moveFrom(output, storedItemOutputs);
+        }
         return storedItemOutputs.size() == 0;
     }
 
     protected void applyOutputEffects() {}
-    public abstract void initOutputInv();
-    public abstract void initInputInv();
+    public abstract void initOutputInvs();
+    public abstract void initInputInvs();
 }
