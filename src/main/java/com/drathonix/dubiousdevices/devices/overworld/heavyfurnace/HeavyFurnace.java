@@ -1,16 +1,76 @@
 package com.drathonix.dubiousdevices.devices.overworld.heavyfurnace;
 
 import com.drathonix.dubiousdevices.DDBlockInstances;
+import com.drathonix.dubiousdevices.devices.overworld.machine.MachineStatus;
+import com.drathonix.dubiousdevices.devices.overworld.redstone.HeatMeter;
+import com.drathonix.dubiousdevices.devices.overworld.redstone.IFurnaceFuel;
 import com.vicious.viciouslibkit.block.BlockTemplate;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceMaterialOnly;
-import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceMultiple;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
+import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
+import com.vicious.viciouslibkit.services.multiblock.TickableMultiBlock;
+import com.vicious.viciouslibkit.util.ChunkPos;
+import com.vicious.viciouslibkit.util.interfaces.INotifiable;
+import com.vicious.viciouslibkit.util.interfaces.INotifier;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.type.Slab;
+import org.bukkit.inventory.ItemStack;
 
-public class HeavyFurnace {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+public class HeavyFurnace extends TickableMultiBlock implements IFurnaceFuel, INotifier<MachineStatus> {
+    private List<INotifiable<MachineStatus>> connectedHeatMeters = new ArrayList<>();
+    private int fuelTicksRemaining = 0;
+    private int maxFuelTicks = 0;
+    private ItemStack fuel = null;
+    public HeavyFurnace(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
+        super(mbType, w, l, dir, flipped, id);
+    }
+
+    public HeavyFurnace(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
+        super(type, w, id, cpos);
+    }
+    @Override
+    public int getFuelRemaining() {
+        return fuelTicksRemaining;
+    }
+
+    @Override
+    public int getFuelMax() {
+        return maxFuelTicks;
+    }
+
+    @Override
+    public ItemStack getFuelType() {
+        return fuel;
+    }
+
+    @Override
+    public boolean tickOnInit() {
+        return true;
+    }
+    @Override
+    public void sendNotification(MachineStatus machineStatus) {
+        for (INotifiable<MachineStatus> connectedHeatMeter : connectedHeatMeters) {
+            connectedHeatMeter.notify(this,machineStatus);
+        }
+    }
+
+    @Override
+    public void listen(INotifiable<MachineStatus> iNotifiable) {
+        if(iNotifiable instanceof HeatMeter) connectedHeatMeters.add(iNotifiable);
+    }
+
+    @Override
+    public void stopListening(INotifiable<MachineStatus> iNotifiable) {
+        if(iNotifiable instanceof HeatMeter) connectedHeatMeters.remove(iNotifiable);
+    }
+
     public static BlockTemplate template(){
         BlockInstance n = null;
         BlockInstance a = BlockInstance.AIR;

@@ -14,10 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class RecipeView {
-    public static <T extends ItemRecipe<T>> CustomGUIInventory viewAll(String deviceName, RecipeHandler<T> handler, int startRecipe, Material search){
+public class GenericRecipeView {
+    public static <T extends ItemRecipe<T>> CustomGUIInventory viewAll(String deviceName, RecipeHandler<T> handler, int startRecipe, Material searchType, RecipeDividerElement<T> divider){
         CustomGUIInventory gui = CustomGUIInventory.newGUI(deviceName + " Recipes",54);
-        List<T> recipes = handler.getRecipesFor(search);
+        List<T> recipes = handler.getRecipesFor(searchType);
         int row = 0;
         for (int i = startRecipe; i < recipes.size() && row <= 4; i++) {
             int index = 0;
@@ -61,7 +61,6 @@ public class RecipeView {
                 gui.setElement(inputElem,row,index);
                 index++;
             }
-            GUIElement<?> divider = GUIElement.loredElement(new ItemStack(Material.BLACK_STAINED_GLASS_PANE)," ");
             TickableGUIElement outputElem = new TickableGUIElement(outputs.get(0));
             outputElem.lore(ChatColor.GOLD + "Output");
             AtomicInteger boxCycle = new AtomicInteger(1);
@@ -73,6 +72,7 @@ public class RecipeView {
                 }
                 boxCycle.set(boxCycle.get()+1);
             });
+            divider.recipe=recipe;
             gui.setElement(divider,row,7);
             gui.setElement(outputElem,row,8);
             row++;
@@ -84,7 +84,7 @@ public class RecipeView {
             nextPage.onLeftClick((ev)->{
                 Player plr = (Player) ev.getWhoClicked();
                 gui.close(plr);
-                viewAll(deviceName,handler,startRecipe+5,search).open(plr);
+                viewAll(deviceName,handler,startRecipe+5,null,divider).open(plr);
             });
         }
         else{
@@ -98,7 +98,7 @@ public class RecipeView {
             prevPage.onLeftClick((ev)->{
                 Player plr = (Player) ev.getWhoClicked();
                 gui.close(plr);
-                viewAll(deviceName,handler,startRecipe-5,search).open(plr);
+                viewAll(deviceName,handler,startRecipe-5,null,divider).open(plr);
             });
         }
         else{
@@ -108,10 +108,20 @@ public class RecipeView {
         gui.setElement(prevPage,row,1);
         GUIElement<?> close = GUIElement.loredElement(new ItemStack(Material.RED_STAINED_GLASS_PANE),ChatColor.RED.toString() + ChatColor.BOLD + "CLOSE");
         close.onLeftClick((ev)->{
-           gui.close((Player) ev.getWhoClicked());
+            gui.close((Player) ev.getWhoClicked());
         });
         gui.setElement(close,row,2);
-        RecipeRemoval.addItemSearch(gui,(s)->{viewAll(deviceName,handler,startRecipe,s);},search,row,4,ChatColor.DARK_AQUA.toString() + ChatColor.BOLD + "Place an item here to search for a recipe consuming it!");
+
+        gui.setElement(GUIElement.loredElement(new ItemStack(Material.BLUE_STAINED_GLASS_PANE),ChatColor.GREEN.toString() + ChatColor.BOLD + "SEARCH >>>"),row,3);
+        GUIElement<?> searcher = GUIElement.loredElement(new ItemStack(Material.CYAN_STAINED_GLASS_PANE),ChatColor.DARK_AQUA.toString() + ChatColor.BOLD +"Place an item here to search for a recipe consuming it!");
+        searcher.onLeftClick((ev)->{
+            ItemStack toSearch = ev.getCursor();
+            viewAll(deviceName,handler,0,toSearch.getType(),divider);
+        });
+        gui.setElement(searcher,row,4);
+        gui.setElement(GUIElement.loredElement(new ItemStack(Material.BLUE_STAINED_GLASS),ChatColor.GREEN.toString() + ChatColor.BOLD + "<<< SEARCH"),row,5);
+
+
         gui.setElement(close,row,6);
         return gui;
     }

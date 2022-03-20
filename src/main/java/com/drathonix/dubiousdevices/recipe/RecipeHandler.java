@@ -1,6 +1,7 @@
 package com.drathonix.dubiousdevices.recipe;
 
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -48,5 +49,21 @@ public abstract class RecipeHandler<T extends ItemRecipe<T>> {
 
     protected void addRecipeToFront(T recipe) {
         recipes.add(0,recipe);
+    }
+
+    public List<T> getRecipesFor(Material searchType) {
+        if(searchType == null) return recipes;
+        else {
+            List<T> out = new ArrayList<>();
+            for (T recipe : recipes) {
+                for (ItemStack input : recipe.getInputs()) {
+                    if(input.getType() == searchType){
+                        out.add(recipe);
+                        break;
+                    }
+                }
+            }
+            return out;
+        }
     }
 }

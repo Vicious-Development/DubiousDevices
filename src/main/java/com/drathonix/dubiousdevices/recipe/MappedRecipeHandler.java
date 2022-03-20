@@ -91,6 +91,14 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
         addRecipe(recipe);
     }
 
+    @Override
+    public List<T> getRecipesFor(Material searchType) {
+        if(searchType == null) return recipes;
+        else{
+            return recipeMap.get(searchType);
+        }
+    }
+
     public static class Named<T extends ItemRecipe<T>> extends MappedRecipeHandler<T>{
         public final String name;
         private final Path destination;

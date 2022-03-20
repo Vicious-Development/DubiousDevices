@@ -1,8 +1,8 @@
 package com.drathonix.dubiousdevices;
 
+import com.drathonix.dubiousdevices.commands.DDCommands;
 import com.drathonix.dubiousdevices.registry.MultiblockRegistry;
 import com.drathonix.dubiousdevices.registry.RecipeHandlers;
-import com.drathonix.dubiousdevices.commands.DDCommands;
 import com.drathonix.dubiousdevices.util.DubiousDirectories;
 import org.bukkit.plugin.java.JavaPlugin;
 

@@ -4,15 +4,29 @@ import com.google.common.collect.Lists;
 import com.vicious.viciouslibkit.item.StackType;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
 public class RecipeHelper {
+    private static Map<Material,Material> metalOreMap = new EnumMap<>(Material.class);
+    static{
+        metalOreMap.put(Material.RAW_COPPER,Material.COPPER_INGOT);
+        metalOreMap.put(Material.RAW_GOLD,Material.GOLD_INGOT);
+        metalOreMap.put(Material.RAW_IRON,Material.IRON_INGOT);
+        metalOreMap.put(Material.COPPER_ORE,Material.COPPER_INGOT);
+        metalOreMap.put(Material.GOLD_ORE,Material.GOLD_INGOT);
+        metalOreMap.put(Material.IRON_ORE,Material.IRON_INGOT);
+        metalOreMap.put(Material.DEEPSLATE_COPPER_ORE,Material.COPPER_INGOT);
+        metalOreMap.put(Material.DEEPSLATE_GOLD_ORE,Material.GOLD_INGOT);
+        metalOreMap.put(Material.DEEPSLATE_IRON_ORE,Material.IRON_INGOT);
+    }
     public static ItemStackMap getShapedIngredients(ShapedRecipe recipe){
         ItemStackMap stackMap = new ItemStackMap();
         Map<Character, ItemStack> dictionary = recipe.getIngredientMap();
@@ -76,5 +90,9 @@ public class RecipeHelper {
         if(r instanceof ShapelessRecipe) return getShapelessIngredients((ShapelessRecipe) r);
         if(r instanceof ShapedRecipe) return getShapedIngredients((ShapedRecipe) r);
         return null;
+    }
+
+    public static boolean isMetalOre(Material type) {
+        return metalOreMap.containsKey(type);
     }
 }

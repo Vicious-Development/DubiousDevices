@@ -1,6 +1,5 @@
 package com.drathonix.dubiousdevices.recipe;
 
-import com.drathonix.dubiousdevices.devices.overworld.crusher.CrusherRecipe;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import com.vicious.viciouslibkit.util.map.RoughItemStackMap;
 import org.bukkit.inventory.ItemStack;
@@ -9,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class ItemRecipe<T extends ItemRecipe<T>> implements ISerializableRecipe<CrusherRecipe> {
+public abstract class ItemRecipe<T extends ItemRecipe<T>> implements ISerializableRecipe<T> {
     protected final List<ItemStack> inputs;
     protected final List<ItemStack> outputs;
     protected boolean ignoreNBT = false;
