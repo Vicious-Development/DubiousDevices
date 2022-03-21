@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.UUID;
 
 public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachine implements INotifiable<EInventoryUpdateStatus>, INotifier<MachineStatus> {
-    public List<Inventory> inputs;
-    public List<Inventory> outputs;
+    public List<Inventory> inputs = new ArrayList<>();
+    public List<Inventory> outputs = new ArrayList<>();
     public T recipe = null;
 
     public DeviceItemIO(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
@@ -43,7 +43,7 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
         //Logic. No recipe, check the input inventory. Still no recipe, stop ticking.
         if(!isProcessing){
             initInputInvs();
-            if(inputs != null) {
+            if(!inputs.isEmpty()) {
                 if (!checkRecipe(mapInventory(inputs))) {
                     removeFromTicker();
                     postTick();
@@ -75,10 +75,8 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
 
     public void input(){
         initInputInvs();
-        if(!recipe.ignoresNBT()) {
-            for (ItemStack input : recipe.getInputs()) {
-                removeItem(inputs,input,recipe.ignoresNBT());
-            }
+        for (ItemStack input : recipe.getInputs()) {
+            removeItem(inputs,input,recipe.ignoresNBT());
         }
         storedItemInputs = recipe.cloneInputs();
     }

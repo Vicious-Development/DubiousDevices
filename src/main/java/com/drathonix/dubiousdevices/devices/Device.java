@@ -65,9 +65,9 @@ public class Device extends TickableMultiBlock {
         } else return null;
     }
     protected void removeItem(List<Inventory> inputs, ItemStack input, boolean ignoreNBT) {
+        input = input.clone();
         int fCount = input.getAmount();
         for (Inventory inv : inputs) {
-            input = input.clone();
             input.setAmount(fCount);
             if(input.getAmount() > 0) fCount = InventoryHelper.extract(input,inv,ignoreNBT);
             else return;
@@ -76,5 +76,8 @@ public class Device extends TickableMultiBlock {
             DubiousDevices.LOGGER.severe("DUPLICATION HAS OCCURED!!! PLEASE REPORT TO THE GIT IMMEDIATELY");
             new Exception().printStackTrace();
         }
+    }
+    public <T> void addIfNonNull(List<T> lst, T obj) {
+        if(obj != null) lst.add(obj);
     }
 }

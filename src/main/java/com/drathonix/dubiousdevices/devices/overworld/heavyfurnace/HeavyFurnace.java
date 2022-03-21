@@ -116,6 +116,9 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
                 timer = 0;
             }
         }
+        else{
+            fuelTicksRemaining--;
+        }
         super.process();
     }
 
@@ -126,6 +129,10 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
                 int burntime = VLKHooks.getBurnTime(content);
                 if(burntime > 0){
                     ItemStackHelper.addTo(content,-1);
+                    fuel = content.clone();
+                    fuel.setAmount(1);
+                    maxFuelTicks = burntime;
+                    fuelTicksRemaining = burntime;
                     return true;
                 }
             }
@@ -142,8 +149,8 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
     public void initOutputInvs() {
         if(outputs.isEmpty()){
             SQLVector3i l = LibKitUtil.orientate(new SQLVector3i(0, -1, 1), facing.value(), flipped.value());
-            outputs.add(getAndListenToInventory(xyz.value().add(l.x,l.y,l.z)));
-            outputs.add(getAndListenToInventory(xyz.value().add(0,l.y,0)));
+            addIfNonNull(outputs,getAndListenToInventory(xyz.value().add(l.x,l.y,l.z)));
+            addIfNonNull(outputs,getAndListenToInventory(xyz.value().add(0,l.y,0)));
         }
         else{
             for (int i = 0; i < outputs.size(); i++) {
@@ -159,10 +166,10 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
             SQLVector3i inputx2 = LibKitUtil.orientate(new SQLVector3i(2, 2, -1), facing.value(), flipped.value());
             inputx1 = xyz.value().add(inputx1.x, inputx1.y, inputx1.z);
             inputx2 = xyz.value().add(inputx2.x, inputx2.y, inputx2.z);
-            inputs.add(getAndListenToInventory(inputx1));
-            inputs.add(getAndListenToInventory(inputx2));
-            inputs.add(getAndListenToInventory(inputx1.add(0, 1, 0)));
-            inputs.add(getAndListenToInventory(inputx2.add(0, 1, 0)));
+            addIfNonNull(inputs,getAndListenToInventory(inputx1));
+            addIfNonNull(inputs,getAndListenToInventory(inputx2));
+            addIfNonNull(inputs,getAndListenToInventory(inputx1.add(0, 1, 0)));
+            addIfNonNull(inputs,getAndListenToInventory(inputx2.add(0, 1, 0)));
             initOutputInvs();
             initFuelInventories();
         }
@@ -176,8 +183,8 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
         if (fuelInput.isEmpty()) {
             SQLVector3i input = LibKitUtil.orientate(new SQLVector3i(0, -3, 1), facing.value(), flipped.value());
             input = xyz.value().add(input.x, input.y, input.z);
-            fuelInput.add(getAndListenToInventory(input));
-            fuelInput.add(getAndListenToInventory(input.add(0, 1, 0)));
+            addIfNonNull(fuelInput,(getAndListenToInventory(input)));
+            addIfNonNull(fuelInput,getAndListenToInventory(input.add(0, 1, 0)));
         } else {
             for (int i = 0; i < fuelInput.size(); i++) {
                 fuelInput.set(i, getInventory(fuelInput.get(i).getLocation()));

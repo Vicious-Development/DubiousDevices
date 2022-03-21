@@ -1,6 +1,7 @@
 package com.drathonix.dubiousdevices.commands;
 
 import com.drathonix.dubiousdevices.guis.RecipeCreation;
+import com.drathonix.dubiousdevices.guis.RecipeRemoval;
 import com.drathonix.dubiousdevices.guis.RecipeView;
 import com.drathonix.dubiousdevices.recipe.RecipeHandler;
 import com.drathonix.dubiousdevices.registry.RecipeHandlers;
@@ -19,7 +20,7 @@ public class DDCommands {
     private static Map<String, TriConsumer<Player,RecipeHandler<?>,String[]>> recipeCommands = new HashMap<>();
     static{
         recipeCommands.put("view",(plr,handler,args)->{
-            CustomGUIInventory gui = RecipeView.viewAll(args[0],handler,0);
+            CustomGUIInventory gui = RecipeView.viewAll(args[0],handler,0,null);
             gui.open(plr);
         });
         recipeCommands.put("add",(plr,handler,args)->{
@@ -27,10 +28,15 @@ public class DDCommands {
             CustomGUIInventory gui = RecipeCreation.inputsPage(args[0],handler);
             gui.open(plr);
         });
+        recipeCommands.put("remove",(plr,handler,args)->{
+            if(!isRecipeOpped(plr)) return;
+            CustomGUIInventory gui = RecipeRemoval.viewAll(args[0],handler,0,null);
+            gui.open(plr);
+        });
 
     }
     private static boolean isRecipeOpped(Player plr){
-        if(!plr.hasPermission("dubiousdevices:recipeop")){
+        if(!plr.hasPermission("dubiousdevices.recipeop")){
             plr.sendMessage(ChatColor.RED + "You need to have Recipe Operator permission to use this command!");
             return false;
         }

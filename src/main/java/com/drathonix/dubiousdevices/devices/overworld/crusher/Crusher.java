@@ -127,12 +127,12 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> {
         if(inputs.isEmpty()){
             Block b1 = world.getBlockAt(io1.x,io1.y,io1.z);
             if(IOTypes.isInput(b1.getType())){
-                inputs.add(getAndListenToInventory(io1));
-                outputs.add(getAndListenToInventory(io2));
+                addIfNonNull(inputs,getAndListenToInventory(io1));
+                addIfNonNull(outputs,getAndListenToInventory(io2));
             }
             else {
-                inputs.add(getAndListenToInventory(io2));
-                outputs.add(getAndListenToInventory(io1));
+                addIfNonNull(inputs,getAndListenToInventory(io2));
+                addIfNonNull(outputs,getAndListenToInventory(io1));
             }
         }
         else{
@@ -141,6 +141,7 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> {
             }
         }
     }
+
     public void initOutputInvs() {
         if(outputs.isEmpty()){
             initInputInvs();
