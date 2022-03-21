@@ -84,4 +84,8 @@ public class DDCommands {
         sender.sendMessage(ChatColor.GREEN + "Wiki Link:\nhttps://github.com/Vicious-MCModding/DubiousDevices/wiki" + target);
         return true;
     }
+    public static boolean reloadCMD(CommandSender sender, Command command, String label, String[] args){
+        RecipeHandlers.reload();
+        return true;
+    }
 }

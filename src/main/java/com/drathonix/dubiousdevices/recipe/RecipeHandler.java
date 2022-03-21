@@ -66,4 +66,7 @@ public abstract class RecipeHandler<T extends ItemRecipe<T>> {
             return out;
         }
     }
+
+    public void reload() {
+    }
 }

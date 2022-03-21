@@ -102,6 +102,7 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
     public static class Named<T extends ItemRecipe<T>> extends MappedRecipeHandler<T>{
         public final String name;
         private final Path destination;
+        private Function<RecipeParseResult,T> deserializer;
         public Named(@Nonnull String name, Path directory, List<RecipeFlag> validFlags, RecipeConstructor<T> defaultConstructor){
             super(validFlags,defaultConstructor);
             this.name = name;
@@ -114,7 +115,17 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
             overwrite();
         }
 
+        @Override
+        public void reload() {
+            super.reload();
+            List<RecipeParseResult> parses = RecipeLang.parseFile(new File(destination.toAbsolutePath().toString()));
+            for (RecipeParseResult parse : parses) {
+                addRecipe(deserializer.apply(parse));
+            }
+        }
+
         public void initIfDNE(Runnable defaultRecipeGenerator, Function<RecipeParseResult,T> recipeDeserializer)  {
+            deserializer=recipeDeserializer;
             if(!Files.exists(destination)){
                 try {
                     Files.createFile(destination);

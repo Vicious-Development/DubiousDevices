@@ -97,4 +97,14 @@ public class RecipeHandlers {
         },(r)->new MetalSmeltingRecipe(r.inputs,r.outputs,r.flags));
         HEAVYSMELTING.initIfDNE(()->{},(r)->new MetalSmeltingRecipe(r.inputs,r.outputs,r.flags));
     }
+
+    public static void reload() {
+        List<RecipeHandler<?>> reloaded = new ArrayList<>();
+        for (RecipeHandler<?> value : allhandlers.values()) {
+            if(!reloaded.contains(value)){
+                value.reload();
+                reloaded.add(value);
+            }
+        }
+    }
 }

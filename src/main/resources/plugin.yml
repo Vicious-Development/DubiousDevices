@@ -10,12 +10,16 @@ authors: [Drathonix]
 commands:
   devicerecipe:
     description: Adds a recipe to the selected machine
-    usage: /recipe <device>
+    usage: /recipe <device> <operation>
     permission: dubiousdevices.devicerecipe
   ddwiki:
     description: Takes you to the wiki, provide a machine name (no spaces for a link to the machine).
-    usage: /ddwiki
+    usage: /ddwiki <optional sublink>
     permission: dubiousdevices.ddwiki
+  ddreload:
+    description: Reloads all DubiousDevices recipe handlers.
+    usage: /ddreload
+    permission: dubiousdevices.ddreload
 
 description: Dubious Devices
 
