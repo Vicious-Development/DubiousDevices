@@ -13,7 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 /**
  * Todo: Combine RecipeRemoval and RecipeView into a single class. Shorten GUI creation code.
@@ -65,7 +65,7 @@ public class RecipeRemoval {
                 gui.setElement(inputElem, row, index);
                 index++;
             }
-            GUIElement<?> remover = GUIElement.loredElement(new ItemStack(Material.BARRIER), " ");
+            GUIElement<?> remover = GUIElement.loredElement(new ItemStack(Material.BARRIER), ChatColor.DARK_RED.toString() + ChatColor.BOLD + "REMOVE");
             remover.onLeftClick((ev) -> {
                 handler.removeRecipe(recipe);
                 viewAll(deviceName, handler, startRecipe, search).open((Player) ev.getWhoClicked());
@@ -115,21 +115,25 @@ public class RecipeRemoval {
         GUIElement<?> close = GUIElement.loredElement(new ItemStack(Material.RED_STAINED_GLASS_PANE), ChatColor.RED.toString() + ChatColor.BOLD + "CLOSE");
         close.onLeftClick((ev) -> gui.close((Player) ev.getWhoClicked()));
         gui.setElement(close, row, 2);
-        addItemSearch(gui, (s) -> viewAll(deviceName, handler, startRecipe, s), search, row, 4, ChatColor.DARK_AQUA.toString() + ChatColor.BOLD + "Place an item here to search for a recipe consuming it!");
+        addItemSearch(gui, (s,p) -> viewAll(deviceName, handler, 0, s).open(p), search, row, 4, ChatColor.DARK_AQUA.toString() + ChatColor.BOLD + "Place an item here to search");
         gui.setElement(close, row, 6);
         return gui;
     }
 
-    public static void addItemSearch(CustomGUIInventory gui, Consumer<Material> searchlambda, Material search, int row, int centerCol, String searchmsg) {
+    public static void addItemSearch(CustomGUIInventory gui, BiConsumer<Material,Player> searchlambda, Material search, int row, int centerCol, String searchmsg) {
         gui.setElement(GUIElement.loredElement(new ItemStack(Material.BLUE_STAINED_GLASS_PANE), ChatColor.GREEN.toString() + ChatColor.BOLD + "SEARCH >>>"), row, centerCol - 1);
-        GUIElement<?> searcher = GUIElement.loredElement(new ItemStack(search == null ? Material.GLASS_PANE : search), searchmsg);
+        GUIElement<?> searcher = GUIElement.loredElement(new ItemStack(search == null ? Material.GLASS_PANE : search,1), searchmsg);
         searcher.onLeftClick((ev) -> {
-            ItemStack toSearch = ev.getCursor();
+            Material toSearch = ev.getCursor() == null ? Material.AIR : ev.getCursor().getType();
             gui.close((Player) ev.getWhoClicked());
-            if (toSearch == null) searchlambda.accept(search);
-            else searchlambda.accept(toSearch.getType());
+            if (toSearch==Material.AIR){
+                searchlambda.accept(null, (Player) ev.getWhoClicked());
+            }
+            else{
+                searchlambda.accept(toSearch, (Player) ev.getWhoClicked());
+            }
         });
         gui.setElement(searcher, row, centerCol);
-        gui.setElement(GUIElement.loredElement(new ItemStack(Material.BLUE_STAINED_GLASS), ChatColor.GREEN.toString() + ChatColor.BOLD + "<<< SEARCH"), row, centerCol + 1);
+        gui.setElement(GUIElement.loredElement(new ItemStack(Material.BLUE_STAINED_GLASS_PANE), ChatColor.GREEN.toString() + ChatColor.BOLD + "<<< SEARCH"), row, centerCol + 1);
     }
 }

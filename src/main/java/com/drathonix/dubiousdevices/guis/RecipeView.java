@@ -61,7 +61,7 @@ public class RecipeView {
                 gui.setElement(inputElem,row,index);
                 index++;
             }
-            GUIElement<?> divider = GUIElement.loredElement(new ItemStack(Material.BLACK_STAINED_GLASS_PANE)," ");
+            GUIElement<?> divider = GUIElement.loredElement(new ItemStack(Material.BLACK_STAINED_GLASS_PANE),ChatColor.GRAY + " < INPUTS | OUTPUTS > ");
             TickableGUIElement outputElem = new TickableGUIElement(outputs.get(0));
             outputElem.lore(ChatColor.GOLD + "Output");
             AtomicInteger boxCycle = new AtomicInteger(1);
@@ -111,7 +111,7 @@ public class RecipeView {
            gui.close((Player) ev.getWhoClicked());
         });
         gui.setElement(close,row,2);
-        RecipeRemoval.addItemSearch(gui,(s)->{viewAll(deviceName,handler,startRecipe,s);},search,row,4,ChatColor.DARK_AQUA.toString() + ChatColor.BOLD + "Place an item here to search for a recipe consuming it!");
+        RecipeRemoval.addItemSearch(gui,(s,p)-> viewAll(deviceName,handler,startRecipe,s).open(p),search,row,4,ChatColor.DARK_AQUA.toString() + ChatColor.BOLD + "Place an item here to search");
         gui.setElement(close,row,6);
         return gui;
     }

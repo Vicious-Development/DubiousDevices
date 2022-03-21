@@ -95,7 +95,7 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
     public List<T> getRecipesFor(Material searchType) {
         if(searchType == null) return recipes;
         else{
-            return recipeMap.get(searchType);
+            return recipeMap.getOrDefault(searchType, new ArrayList<>());
         }
     }
 
@@ -107,6 +107,13 @@ public class MappedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandler<
             this.name = name;
             this.destination = FileUtil.toPath(directory.toAbsolutePath() + "/" + name + ".txt");
         }
+
+        @Override
+        public void removeRecipe(T recipe) {
+            super.removeRecipe(recipe);
+            overwrite();
+        }
+
         public void initIfDNE(Runnable defaultRecipeGenerator, Function<RecipeParseResult,T> recipeDeserializer)  {
             if(!Files.exists(destination)){
                 try {
