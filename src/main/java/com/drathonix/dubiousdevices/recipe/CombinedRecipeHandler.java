@@ -41,7 +41,7 @@ public class CombinedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandle
     public List<T> getRecipesFor(Material searchType) {
         List<T> recips = new ArrayList<>();
         for (RecipeHandler<T> handler : handlers) {
-            recipes.addAll(handler.getRecipesFor(searchType));
+            recips.addAll(handler.getRecipesFor(searchType));
         }
         return recips;
     }

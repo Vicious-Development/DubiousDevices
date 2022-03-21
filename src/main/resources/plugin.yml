@@ -16,6 +16,10 @@ commands:
     description: Lists all registered devices.
     usage: /devicelist
     permission: dubiousdevices.devicelist
+  ddwiki:
+    description: Takes you to the wiki, provide a machine name (no spaces for a link to the machine).
+    usage: /ddwiki
+    permission: dubiousdevices.ddwiki
 
 description: Dubious Devices
 

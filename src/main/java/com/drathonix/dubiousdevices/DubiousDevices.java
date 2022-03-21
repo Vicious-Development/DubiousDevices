@@ -28,6 +28,7 @@ public final class DubiousDevices extends JavaPlugin {
             new MultiblockRegistry();
             new RecipeHandlers();
             this.getCommand("devicerecipe").setExecutor(DDCommands::recipeCMD);
+            this.getCommand("ddwiki").setExecutor(DDCommands::wikiCMD);
         } catch (Exception ex){
             LOGGER.severe("Dubious Devices failed to load properly, caused by: " + ex.getMessage());
             ex.printStackTrace();

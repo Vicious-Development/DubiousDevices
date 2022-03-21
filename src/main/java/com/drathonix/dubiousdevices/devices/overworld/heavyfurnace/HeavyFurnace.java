@@ -142,7 +142,7 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
 
     @Override
     protected RecipeHandler<MetalSmeltingRecipe> getRecipeHandler() {
-        return RecipeHandlers.HEAVYFURNACECOMBINEDHANDLER;
+        return RecipeHandlers.HEAVYFURNACE;
     }
 
     @Override

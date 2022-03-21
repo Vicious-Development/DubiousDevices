@@ -21,9 +21,9 @@ public class RecipeHandlers {
     public static final Map<String, RecipeHandler<?>> viewingHandlers = new HashMap<>();
     public static final MappedRecipeHandler.Named<CrusherRecipe> CRUSHER = add(new MappedRecipeHandler.Named<CrusherRecipe>("Crusher", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS),CrusherRecipe::new),true);
     public static final MappedRecipeHandler.Named<MetalSmeltingRecipe> METALSMELTING = add(new MappedRecipeHandler.Named<MetalSmeltingRecipe>("MetalSmelting", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new),true);
-    public static final MappedRecipeHandler.Named<MetalSmeltingRecipe> HEAVYFURNACE = add(new MappedRecipeHandler.Named<MetalSmeltingRecipe>("HeavySmelting", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new),false);
+    public static final MappedRecipeHandler.Named<MetalSmeltingRecipe> HEAVYSMELTING = add(new MappedRecipeHandler.Named<MetalSmeltingRecipe>("HeavySmelting", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new),false);
     public static final MappedRecipeHandler.Named<CompactorRecipe> COMPACTORRECIPE = add(new MappedRecipeHandler.Named<CompactorRecipe>("Compactor", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), CompactorRecipe::new),true);
-    public static final CombinedRecipeHandler<MetalSmeltingRecipe> HEAVYFURNACECOMBINEDHANDLER = add(new CombinedRecipeHandler<>(Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new,METALSMELTING,HEAVYFURNACE),true,"HeavyFurnace");
+    public static final CombinedRecipeHandler<MetalSmeltingRecipe> HEAVYFURNACE = add(new CombinedRecipeHandler<MetalSmeltingRecipe>(Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new, METALSMELTING, HEAVYSMELTING),true,"HeavyFurnace");
 
     private static <T extends RecipeHandler<? extends ItemRecipe<?>>> T add(T rh, boolean addToViewer, String... altNames) {
         if(rh instanceof MappedRecipeHandler.Named) {
@@ -95,6 +95,6 @@ public class RecipeHandlers {
                 else METALSMELTING.addRecipe(new MetalSmeltingRecipe(Lists.newArrayList(br.getInput()),Lists.newArrayList(br.getResult()),flags));
             });
         },(r)->new MetalSmeltingRecipe(r.inputs,r.outputs,r.flags));
-        HEAVYFURNACE.initIfDNE(()->{},(r)->new MetalSmeltingRecipe(r.inputs,r.outputs,r.flags));
+        HEAVYSMELTING.initIfDNE(()->{},(r)->new MetalSmeltingRecipe(r.inputs,r.outputs,r.flags));
     }
 }

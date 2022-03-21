@@ -121,7 +121,7 @@ public class RecipeRemoval {
     }
 
     public static void addItemSearch(CustomGUIInventory gui, BiConsumer<Material,Player> searchlambda, Material search, int row, int centerCol, String searchmsg) {
-        gui.setElement(GUIElement.loredElement(new ItemStack(Material.BLUE_STAINED_GLASS_PANE), ChatColor.GREEN.toString() + ChatColor.BOLD + "SEARCH >>>"), row, centerCol - 1);
+        gui.setElement(GUIElement.loredElement(new ItemStack(Material.MAGENTA_STAINED_GLASS_PANE), ChatColor.GREEN.toString() + ChatColor.BOLD + "SEARCH >>>"), row, centerCol - 1);
         GUIElement<?> searcher = GUIElement.loredElement(new ItemStack(search == null ? Material.GLASS_PANE : search,1), searchmsg);
         searcher.onLeftClick((ev) -> {
             Material toSearch = ev.getCursor() == null ? Material.AIR : ev.getCursor().getType();
@@ -134,6 +134,6 @@ public class RecipeRemoval {
             }
         });
         gui.setElement(searcher, row, centerCol);
-        gui.setElement(GUIElement.loredElement(new ItemStack(Material.BLUE_STAINED_GLASS_PANE), ChatColor.GREEN.toString() + ChatColor.BOLD + "<<< SEARCH"), row, centerCol + 1);
+        gui.setElement(GUIElement.loredElement(new ItemStack(Material.MAGENTA_STAINED_GLASS_PANE), ChatColor.GREEN.toString() + ChatColor.BOLD + "<<< SEARCH"), row, centerCol + 1);
     }
 }
