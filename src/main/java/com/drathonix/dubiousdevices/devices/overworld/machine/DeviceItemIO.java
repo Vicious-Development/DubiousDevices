@@ -2,9 +2,18 @@ package com.drathonix.dubiousdevices.devices.overworld.machine;
 
 import com.drathonix.dubiousdevices.recipe.ItemRecipe;
 import com.drathonix.dubiousdevices.recipe.RecipeHandler;
+import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
+import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockChunkDataHandler;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
+import com.vicious.viciouslibkit.data.worldstorage.PluginWorldData;
 import com.vicious.viciouslibkit.inventory.InventoryHelper;
+import com.vicious.viciouslibkit.inventory.wrapper.EInventoryUpdateStatus;
+import com.vicious.viciouslibkit.inventory.wrapper.InventoryWrapper;
+import com.vicious.viciouslibkit.inventory.wrapper.InventoryWrapperChunkHandler;
 import com.vicious.viciouslibkit.util.ChunkPos;
+import com.vicious.viciouslibkit.util.LibKitUtil;
+import com.vicious.viciouslibkit.util.interfaces.INotifiable;
+import com.vicious.viciouslibkit.util.interfaces.INotifier;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -12,10 +21,11 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachine{
+public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachine implements INotifiable<EInventoryUpdateStatus>, INotifier<MachineStatus> {
     public List<Inventory> inputs;
     public List<Inventory> outputs;
     public T recipe = null;
@@ -31,7 +41,7 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
     public void tick() {
         super.tick();
         //Logic. No recipe, check the input inventory. Still no recipe, stop ticking.
-        if(timer == 0){
+        if(!isProcessing){
             initInputInvs();
             if(inputs != null) {
                 if (!checkRecipe(mapInventory(inputs))) {
@@ -89,8 +99,58 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
         }
         return storedItemOutputs.size() == 0;
     }
+    public void stopListeningToInventories(){
+        for (Inventory input : inputs) {
+            InventoryWrapper iw = getInvWrapper(LibKitUtil.fromLocation(input.getLocation()));
+            if(iw != null) iw.stopListening(this);
+        }
+        for (Inventory outputs : outputs) {
+            InventoryWrapper iw = getInvWrapper(LibKitUtil.fromLocation(outputs.getLocation()));
+            if(iw != null) iw.stopListening(this);
+        }
+    }
+
+    @Override
+    protected void invalidate(MultiBlockChunkDataHandler dat) {
+        stopListeningToInventories();
+        super.invalidate(dat);
+    }
+
+    public InventoryWrapper getInvWrapper(SQLVector3i p){
+        InventoryWrapperChunkHandler handler = PluginWorldData.getChunkDataHandler(world,ChunkPos.fromBlockPos(p), InventoryWrapperChunkHandler.class);
+        return handler.getOrCreateWrapper(world,p);
+    }
 
     protected void applyOutputEffects() {}
     public abstract void initOutputInvs();
     public abstract void initInputInvs();
+
+    private List<INotifiable<MachineStatus>> listening = new ArrayList<>();
+    @Override
+    public void sendNotification(MachineStatus machineStatus) {
+        for (INotifiable<MachineStatus> listener : listening) {
+            listener.notify(this,machineStatus);
+        }
+    }
+
+    @Override
+    public void listen(INotifiable<MachineStatus> iNotifiable) {
+        listening.add(iNotifiable);
+    }
+
+    @Override
+    public void stopListening(INotifiable<MachineStatus> iNotifiable) {
+        listening.remove(iNotifiable);
+    }
+    @Override
+    public void notify(INotifier<EInventoryUpdateStatus> sender, EInventoryUpdateStatus status) {
+        addToTicker();
+    }
+    protected Inventory getAndListenToInventory(SQLVector3i o){
+        InventoryWrapperChunkHandler iwch = PluginWorldData.getChunkDataHandler(world,ChunkPos.fromBlockPos(o),InventoryWrapperChunkHandler.class);
+        InventoryWrapper wrapper = iwch.getOrCreateWrapper(world,o);
+        if(wrapper == null) return null;
+        wrapper.listen(this);
+        return wrapper.INVENTORY;
+    }
 }

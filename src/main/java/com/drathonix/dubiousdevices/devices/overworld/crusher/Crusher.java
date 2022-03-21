@@ -12,17 +12,10 @@ import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
 import com.vicious.viciouslibkit.block.BlockTemplate;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
-import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockChunkDataHandler;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
-import com.vicious.viciouslibkit.data.worldstorage.PluginWorldData;
-import com.vicious.viciouslibkit.inventory.wrapper.EInventoryUpdateStatus;
-import com.vicious.viciouslibkit.inventory.wrapper.InventoryWrapper;
-import com.vicious.viciouslibkit.inventory.wrapper.InventoryWrapperChunkHandler;
 import com.vicious.viciouslibkit.util.ChunkPos;
 import com.vicious.viciouslibkit.util.LibKitUtil;
 import com.vicious.viciouslibkit.util.NMSHelper;
-import com.vicious.viciouslibkit.util.interfaces.INotifiable;
-import com.vicious.viciouslibkit.util.interfaces.INotifier;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -38,7 +31,7 @@ import java.util.UUID;
 /*
 TODO: Create a generic machine multiblock.
  */
-public class Crusher extends DeviceItemIO<CrusherRecipe> implements INotifiable<EInventoryUpdateStatus> {
+public class Crusher extends DeviceItemIO<CrusherRecipe> {
     private int maxExtraDrops = 0;
     //Northfacing
     private static final SQLVector3i iol = new SQLVector3i(-2,-3,0);
@@ -60,21 +53,6 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> implements INotifiable<
 
 
     @Override
-    protected void invalidate(MultiBlockChunkDataHandler dat) {
-        InventoryWrapper iw = getInvWrapper(io1);
-        InventoryWrapperChunkHandler ch = PluginWorldData.getChunkDataHandler(world,ChunkPos.fromBlockPos(xyz.value()),InventoryWrapperChunkHandler.class);
-        if(iw != null){
-            iw.stopListening(this);
-            ch.removeWrapper(io1);
-        }
-        iw = getInvWrapper(io2);
-        if(iw != null){
-            iw.stopListening(this);
-            ch.removeWrapper(io2);
-        }
-        super.invalidate(dat);
-    }
-    @Override
     public void validate() {
         super.validate();
         if(!DubiousCFG.getInstance().crusherEnabled.value()) return;
@@ -84,46 +62,29 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> implements INotifiable<
         io2 = new SQLVector3i(xyz.value().x + io2.x,xyz.value().y + io2.y,xyz.value().z + io2.z);
         Block b = world.getBlockAt(xyz.value().x,xyz.value().y-1,xyz.value().z);
         maxExtraDrops = MaterialValue.getMaterialValue(b.getType());
-        Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE,()->{
-            try {
-                getInvWrapper(io1).listen(this);
-                getInvWrapper(io2).listen(this);
-            } catch (Exception ignored){}
-            //Exception is caused by unloaded chunks, just ignore it it'll be fine.
-        },1);
+        //Exception is caused by unloaded chunks, just ignore it it'll be fine.
+        Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE, this::initInputInvs,1);
     }
 
-    public InventoryWrapper getInvWrapper(SQLVector3i p){
-        InventoryWrapperChunkHandler handler = PluginWorldData.getChunkDataHandler(world,ChunkPos.fromBlockPos(p), InventoryWrapperChunkHandler.class);
-        return handler.getOrCreateWrapper(world,p);
+    protected void processStart() throws Exception{
+        super.processStart();
+        SQLVector3i vec = xyz.value();
+        Block piston = world.getBlockAt(vec.x, vec.y, vec.z);
+        Piston pdat = (Piston) piston.getBlockData();
+        NMSHelper.setExtended(piston,true);
+        pdat.setExtended(true);
+        piston.setBlockData(pdat);
+        input();
     }
-
-    protected void process() {
-        if(timer == 0){
-            try {
-                SQLVector3i vec = xyz.value();
-                Block piston = world.getBlockAt(vec.x, vec.y, vec.z);
-                Piston pdat = (Piston) piston.getBlockData();
-                NMSHelper.setExtended(piston,true);
-                pdat.setExtended(true);
-                piston.setBlockData(pdat);
-                input();
-            } catch (Exception e){
-                DubiousDevices.LOGGER.warning(e.getMessage());
-                e.printStackTrace();
-            }
+    protected void processEnd() throws Exception{
+        if(output()){
+            super.processEnd();
+            SQLVector3i vec = xyz.value();
+            Block piston = world.getBlockAt(vec.x,vec.y,vec.z);
+            Piston pdat = (Piston) piston.getBlockData();
+            pdat.setExtended(false);
+            piston.setBlockData(pdat);
         }
-        if(timer >= processTime){
-            if(output()){
-                timer = 0;
-                SQLVector3i vec = xyz.value();
-                Block piston = world.getBlockAt(vec.x,vec.y,vec.z);
-                Piston pdat = (Piston) piston.getBlockData();
-                pdat.setExtended(false);
-                piston.setBlockData(pdat);
-            }
-        }
-        else timer++;
     }
 
     protected void applyOutputEffects() {
@@ -166,12 +127,12 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> implements INotifiable<
         if(inputs.isEmpty()){
             Block b1 = world.getBlockAt(io1.x,io1.y,io1.z);
             if(IOTypes.isInput(b1.getType())){
-                inputs.add(getInventory(io1));
-                outputs.add(getInventory(io2));
+                inputs.add(getAndListenToInventory(io1));
+                outputs.add(getAndListenToInventory(io2));
             }
             else {
-                inputs.add(getInventory(io2));
-                outputs.add(getInventory(io1));
+                inputs.add(getAndListenToInventory(io2));
+                outputs.add(getAndListenToInventory(io1));
             }
         }
         else{
@@ -222,11 +183,5 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> implements INotifiable<
                 .x(n,n,f,n,n).z()
                 .x(n,n,n,n,n).finish(2,3,1)
                 ;
-    }
-
-
-    @Override
-    public void notify(INotifier<EInventoryUpdateStatus> sender, EInventoryUpdateStatus status) {
-        addToTicker();
     }
 }

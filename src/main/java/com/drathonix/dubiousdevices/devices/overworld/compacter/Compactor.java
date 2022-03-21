@@ -1,13 +1,48 @@
 package com.drathonix.dubiousdevices.devices.overworld.compacter;
 
 import com.drathonix.dubiousdevices.DDBlockInstances;
+import com.drathonix.dubiousdevices.devices.overworld.machine.DeviceItemIO;
+import com.drathonix.dubiousdevices.recipe.RecipeHandler;
 import com.vicious.viciouslibkit.block.BlockTemplate;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
+import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
+import com.vicious.viciouslibkit.util.ChunkPos;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
-public class Compacter {
+import java.util.UUID;
+
+public class Compactor extends DeviceItemIO<CompactorRecipe> {
+    public Compactor(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
+        super(mbType, w, l, dir, flipped, id);
+    }
+
+    public Compactor(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
+        super(type, w, id, cpos);
+    }
+
+    @Override
+    protected RecipeHandler<CompactorRecipe> getRecipeHandler() {
+        return null;
+    }
+
+    @Override
+    public void initOutputInvs() {
+
+    }
+
+    @Override
+    public void initInputInvs() {
+
+    }
+
+    @Override
+    protected void process() {
+
+    }
     public static BlockTemplate template(){
         BlockInstance n = null;
         BlockInstance a = BlockInstance.AIR;

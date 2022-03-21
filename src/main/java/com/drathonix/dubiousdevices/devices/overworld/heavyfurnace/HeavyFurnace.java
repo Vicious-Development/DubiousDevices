@@ -1,22 +1,25 @@
 package com.drathonix.dubiousdevices.devices.overworld.heavyfurnace;
 
 import com.drathonix.dubiousdevices.DDBlockInstances;
+import com.drathonix.dubiousdevices.DubiousDevices;
 import com.drathonix.dubiousdevices.devices.overworld.machine.DeviceItemIO;
 import com.drathonix.dubiousdevices.devices.overworld.machine.MachineStatus;
-import com.drathonix.dubiousdevices.devices.overworld.redstone.HeatMeter;
+import com.drathonix.dubiousdevices.devices.overworld.machine.MaterialValue;
 import com.drathonix.dubiousdevices.devices.overworld.redstone.IFurnaceFuel;
 import com.drathonix.dubiousdevices.recipe.RecipeHandler;
 import com.drathonix.dubiousdevices.registry.RecipeHandlers;
 import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
+import com.vicious.viciouslibkit.VLKHooks;
 import com.vicious.viciouslibkit.block.BlockTemplate;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceMaterialOnly;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
+import com.vicious.viciouslibkit.item.ItemStackHelper;
 import com.vicious.viciouslibkit.util.ChunkPos;
 import com.vicious.viciouslibkit.util.LibKitUtil;
-import com.vicious.viciouslibkit.util.interfaces.INotifiable;
 import com.vicious.viciouslibkit.util.interfaces.INotifier;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -29,10 +32,11 @@ import java.util.List;
 import java.util.UUID;
 
 public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements IFurnaceFuel, INotifier<MachineStatus> {
-    private List<INotifiable<MachineStatus>> connectedHeatMeters = new ArrayList<>();
     private List<Inventory> fuelInput = new ArrayList<>();
     private int fuelTicksRemaining = 0;
     private int maxFuelTicks = 0;
+    private double chanceToDouble = 0;
+    private double fuelBurnTimeMultiplier = 0;
     private ItemStack fuel = null;
     public HeavyFurnace(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
         super(mbType, w, l, dir, flipped, id);
@@ -42,9 +46,91 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
         super(type, w, id, cpos);
     }
 
+    protected void processStart() throws Exception{
+        super.processStart();
+        SQLVector3i vec = xyz.value();
+        input();
+    }
+    protected void processEnd() throws Exception{
+        if(output()) {
+            super.processEnd();
+        }
+    }
+
+    @Override
+    public void validate() {
+        super.validate();
+        //if(!DubiousCFG.getInstance().crusherEnabled.value()) return;
+        int materialValue = getTotalMaterialValue();
+        double avgMV = ((double) materialValue/getMetalBlockLocations().size());
+        //With netherite this is 1.
+        chanceToDouble = avgMV/4;
+        //With netherite this is 2.
+        fuelBurnTimeMultiplier = avgMV/2;
+        Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE, this::initInputInvs,1);
+    }
+    public int getTotalMaterialValue(){
+        int ret = 0;
+        for (SQLVector3i l : getMetalBlockLocations()) {
+            ret += MaterialValue.getMaterialValue(world.getBlockAt(l.x,l.y,l.z).getType());
+        }
+        return ret;
+    }
+
+    /**
+     * This only needs to be used on machine validation so no need to cache.
+     */
+    public List<SQLVector3i> getMetalBlockLocations(){
+        List<SQLVector3i> metalLocations = new ArrayList<>();
+        //0
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(0, -1, -1), facing.value(), flipped.value()));
+        //1
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(-1, 0, -1), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(1, 0, -1), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(0, 0, -2), facing.value(), flipped.value()));
+        //2
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(-1, 1, -1), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(1, 1, -1), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(0, 1, -2), facing.value(), flipped.value()));
+        //3
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(-1, 2, -1), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(1, 2, -1), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(0, 2, -2), facing.value(), flipped.value()));
+        //4
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(-1, 3, -1), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(1, 3, -1), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(0, 3, -2), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(0, 3, 0), facing.value(), flipped.value()));
+        //5
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(-1, 4, -1), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(1, 4, -1), facing.value(), flipped.value()));
+        metalLocations.add(LibKitUtil.orientate(new SQLVector3i(0, 4, -2), facing.value(), flipped.value()));
+        return metalLocations;
+    }
+
     @Override
     protected void process() {
+        if(fuelTicksRemaining == 0) {
+            if(!consumeFuel()){
+                removeFromTicker();
+                timer = 0;
+            }
+        }
+        super.process();
+    }
 
+    protected boolean consumeFuel() {
+        for (Inventory inv : fuelInput) {
+            for (ItemStack content : inv.getContents()) {
+                if(content == null) continue;
+                int burntime = VLKHooks.getBurnTime(content);
+                if(burntime > 0){
+                    ItemStackHelper.addTo(content,-1);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -56,8 +142,8 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
     public void initOutputInvs() {
         if(outputs.isEmpty()){
             SQLVector3i l = LibKitUtil.orientate(new SQLVector3i(0, -1, 1), facing.value(), flipped.value());
-            outputs.add(getInventory(xyz.value().add(l.x,l.y,l.z)));
-            outputs.add(getInventory(xyz.value().add(0,l.y,0)));
+            outputs.add(getAndListenToInventory(xyz.value().add(l.x,l.y,l.z)));
+            outputs.add(getAndListenToInventory(xyz.value().add(0,l.y,0)));
         }
         else{
             for (int i = 0; i < outputs.size(); i++) {
@@ -73,11 +159,12 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
             SQLVector3i inputx2 = LibKitUtil.orientate(new SQLVector3i(2, 2, -1), facing.value(), flipped.value());
             inputx1 = xyz.value().add(inputx1.x, inputx1.y, inputx1.z);
             inputx2 = xyz.value().add(inputx2.x, inputx2.y, inputx2.z);
-            addIfNonNull(getInventory(inputx1));
-            addIfNonNull(getInventory(inputx2));
-            addIfNonNull(getInventory(inputx1.add(0, 1, 0)));
-            addIfNonNull(getInventory(inputx2.add(0, 1, 0)));
+            inputs.add(getAndListenToInventory(inputx1));
+            inputs.add(getAndListenToInventory(inputx2));
+            inputs.add(getAndListenToInventory(inputx1.add(0, 1, 0)));
+            inputs.add(getAndListenToInventory(inputx2.add(0, 1, 0)));
             initOutputInvs();
+            initFuelInventories();
         }
         else{
             for (int i = 0; i < inputs.size(); i++) {
@@ -85,11 +172,17 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
             }
         }
     }
-    public void initFuelInventories(){
-
-    }
-    private void addIfNonNull(Inventory inv){
-        if(inv != null) inputs.add(inv);
+    public void initFuelInventories() {
+        if (fuelInput.isEmpty()) {
+            SQLVector3i input = LibKitUtil.orientate(new SQLVector3i(0, -3, 1), facing.value(), flipped.value());
+            input = xyz.value().add(input.x, input.y, input.z);
+            fuelInput.add(getAndListenToInventory(input));
+            fuelInput.add(getAndListenToInventory(input.add(0, 1, 0)));
+        } else {
+            for (int i = 0; i < fuelInput.size(); i++) {
+                fuelInput.set(i, getInventory(fuelInput.get(i).getLocation()));
+            }
+        }
     }
 
     @Override
@@ -111,23 +204,6 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
     public boolean tickOnInit() {
         return true;
     }
-    @Override
-    public void sendNotification(MachineStatus machineStatus) {
-        for (INotifiable<MachineStatus> connectedHeatMeter : connectedHeatMeters) {
-            connectedHeatMeter.notify(this,machineStatus);
-        }
-    }
-
-    @Override
-    public void listen(INotifiable<MachineStatus> iNotifiable) {
-        if(iNotifiable instanceof HeatMeter) connectedHeatMeters.add(iNotifiable);
-    }
-
-    @Override
-    public void stopListening(INotifiable<MachineStatus> iNotifiable) {
-        if(iNotifiable instanceof HeatMeter) connectedHeatMeters.remove(iNotifiable);
-    }
-
     public static BlockTemplate template(){
         BlockInstance n = null;
         BlockInstance a = BlockInstance.AIR;

@@ -1,5 +1,6 @@
 package com.drathonix.dubiousdevices.registry;
 
+import com.drathonix.dubiousdevices.devices.overworld.compacter.CompactorRecipe;
 import com.drathonix.dubiousdevices.devices.overworld.crusher.CrusherRecipe;
 import com.drathonix.dubiousdevices.devices.overworld.heavyfurnace.MetalSmeltingRecipe;
 import com.drathonix.dubiousdevices.recipe.*;
@@ -18,6 +19,7 @@ public class RecipeHandlers {
     public static final MappedRecipeHandler.Named<CrusherRecipe> CRUSHER = add(new MappedRecipeHandler.Named<CrusherRecipe>("Crusher", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS),CrusherRecipe::new));
     public static final MappedRecipeHandler.Named<MetalSmeltingRecipe> METALSMELTING = add(new MappedRecipeHandler.Named<MetalSmeltingRecipe>("MetalSmelting", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new));
     public static final MappedRecipeHandler.Named<MetalSmeltingRecipe> HEAVYFURNACE = add(new MappedRecipeHandler.Named<MetalSmeltingRecipe>("HeavyFurnace", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new));
+    public static final MappedRecipeHandler.Named<CompactorRecipe> COMPACTORRECIPE = add(new MappedRecipeHandler.Named<CompactorRecipe>("Compactor", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), CompactorRecipe::new));
     public static final CombinedRecipeHandler<MetalSmeltingRecipe> HEAVYFURNACECOMBINEDHANDLER = new CombinedRecipeHandler<>(Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new,METALSMELTING,HEAVYFURNACE);
 
     private static <T extends ItemRecipe<T>> MappedRecipeHandler.Named<T> add(MappedRecipeHandler.Named<T> rh, String... altNames) {
