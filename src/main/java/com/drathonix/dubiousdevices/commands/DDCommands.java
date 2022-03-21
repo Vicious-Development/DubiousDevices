@@ -55,9 +55,9 @@ public class DDCommands {
         return playerCheck(sender,()->{
             Player plr = (Player) sender;
             String device = args[0];
-            RecipeHandler<?> handler = RecipeHandlers.handlers.get(device);
+            RecipeHandler<?> handler = RecipeHandlers.allhandlers.get(device);
             if(handler == null){
-                plr.sendMessage(ChatColor.RED + args[0] + " is not a valid recipe handler for /recipe! Options: " + RecipeHandlers.handlers.keySet());
+                plr.sendMessage(ChatColor.RED + args[0] + " is not a valid recipe handler for /recipe! Options: " + RecipeHandlers.allhandlers.keySet());
                 return false;
             }
             TriConsumer<Player,RecipeHandler<?>,String[]> consumer = recipeCommands.get(args[1]);

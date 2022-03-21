@@ -1,6 +1,7 @@
 package com.drathonix.dubiousdevices.recipe;
 
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -36,11 +37,19 @@ public class CombinedRecipeHandler<T extends ItemRecipe<T>> extends RecipeHandle
         return null;
     }
 
+    @Override
+    public List<T> getRecipesFor(Material searchType) {
+        List<T> recips = new ArrayList<>();
+        for (RecipeHandler<T> handler : handlers) {
+            recipes.addAll(handler.getRecipesFor(searchType));
+        }
+        return recips;
+    }
+
+
     /**
      * Combined handlers are internal only, no custom recipes will be added via the combined handler.
      */
     @Override
-    public void addRecipeAndWrite(T recipe) {
-
-    }
+    public void addRecipeAndWrite(T recipe) {}
 }
