@@ -109,15 +109,20 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
     }
 
     @Override
+    public void tick() {
+        if(fuelTicksRemaining > 0){
+            fuelTicksRemaining--;
+        }
+        super.tick();
+    }
+
+    @Override
     protected void process() {
         if(fuelTicksRemaining == 0) {
-            if(!consumeFuel()){
+            if (!consumeFuel()) {
                 removeFromTicker();
                 timer = 0;
             }
-        }
-        else{
-            fuelTicksRemaining--;
         }
         super.process();
     }

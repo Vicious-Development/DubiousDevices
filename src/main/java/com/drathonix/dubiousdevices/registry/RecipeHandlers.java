@@ -83,7 +83,7 @@ public class RecipeHandlers {
                 if(!(r instanceof BlastingRecipe)) return;
                 BlastingRecipe br = (BlastingRecipe) r;
                 List<String> flags = Lists.newArrayList(DDRecipeFlags.NONBT.name);
-                if(RecipeHelper.isMetalOre(br.getInput().getType())){
+                if(br.getInput().getType() != Material.ANCIENT_DEBRIS){
                     flags.add(DDRecipeFlags.ALLOWEXTRAOUTPUTS.name);
                 }
                 if(br.getInputChoice() instanceof RecipeChoice.MaterialChoice){

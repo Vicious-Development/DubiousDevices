@@ -63,7 +63,7 @@ public class DDCommands {
     public static boolean recipeCMD(CommandSender sender, Command command, String label, String[] args) {
         return playerCheck(sender,()->{
             Player plr = (Player) sender;
-            String device = args.length >= 1 ? "" : args[0];
+            String device = args.length < 1 ? "" : args[0];
             RecipeHandler<?> handler = RecipeHandlers.allhandlers.get(device);
             if(handler == null){
                 plr.sendMessage(ChatColor.RED + args[0] + " is not a valid recipe handler for /recipe! Options: " + RecipeHandlers.allhandlers.keySet());
