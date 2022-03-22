@@ -67,7 +67,6 @@ public class RecipeHelper {
             for (Recipe value : recipesFor) {
                 ingredients = getIngredients(value);
                 if(ingredients == null) continue;
-                System.out.println(value.getResult() + " = " + ingredients.values());
                 if(ingredients.containsKey(new StackType(undo.getResult()))) return false;
             }
         }

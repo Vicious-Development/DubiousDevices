@@ -57,7 +57,6 @@ public class RecipeCreation {
                 }
             }
             builder.outputs=stackMap.getStacks();
-            System.out.println(builder.outputs);
             gui.forceClose();
             flagsPage(deviceName,handler,builder).open((Player) ev.getWhoClicked());
         });
