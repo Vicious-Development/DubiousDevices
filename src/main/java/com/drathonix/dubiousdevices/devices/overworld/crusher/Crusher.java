@@ -89,7 +89,6 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> {
 
     protected void applyOutputEffects() {
         if(recipe.doExtraOutputs){
-            storedItemOutputs = recipe.cloneOutputs();
             if(maxExtraDrops > 0) {
                 for (int i = 0; i < storedItemOutputs.size(); i++) {
                     ItemStack s = storedItemOutputs.get(i);

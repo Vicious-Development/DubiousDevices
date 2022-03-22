@@ -30,7 +30,7 @@ public abstract class DeviceMachine extends Device {
         super(type, w, id, cpos);
     }
     protected void process() {
-        if(timer == 0){
+        if(timer == 0 && !isProcessing){
             try {
                 processStart();
             } catch (Exception e){
@@ -38,7 +38,7 @@ public abstract class DeviceMachine extends Device {
                 e.printStackTrace();
             }
         }
-        if(timer >= processTime){
+        if(timer >= processTime && isProcessing){
             try{
                 processEnd();
             } catch(Exception e){

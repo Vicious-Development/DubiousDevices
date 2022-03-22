@@ -48,10 +48,10 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
 
     protected void processStart() throws Exception{
         super.processStart();
-        SQLVector3i vec = xyz.value();
         input();
     }
     protected void processEnd() throws Exception{
+        System.out.println("RAN");
         if(output()) {
             super.processEnd();
         }
@@ -113,12 +113,21 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
         if(fuelTicksRemaining > 0){
             fuelTicksRemaining--;
         }
+        else{
+            System.out.println("F");
+            if (!consumeFuel()) {
+                removeFromTicker();
+                timer = 0;
+                return;
+            }
+        }
         super.tick();
     }
 
     @Override
     protected void process() {
         if(fuelTicksRemaining == 0) {
+            System.out.println("F");
             if (!consumeFuel()) {
                 removeFromTicker();
                 timer = 0;
@@ -128,10 +137,13 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
     }
 
     protected boolean consumeFuel() {
+        initFuelInventories();
+        System.out.println(fuelInput);
         for (Inventory inv : fuelInput) {
             for (ItemStack content : inv.getContents()) {
                 if(content == null) continue;
-                int burntime = VLKHooks.getBurnTime(content);
+                int burntime = (int) (VLKHooks.getBurnTime(content)*(1+fuelBurnTimeMultiplier));
+                System.out.println(content + " | " + fuelBurnTimeMultiplier + " : " + VLKHooks.getBurnTime(content));
                 if(burntime > 0){
                     ItemStackHelper.addTo(content,-1);
                     fuel = content.clone();
@@ -143,6 +155,24 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
             }
         }
         return false;
+    }
+    protected void applyOutputEffects() {
+        System.out.println("EXEC");
+        if(recipe.doExtraOutputs){
+            if(chanceToDouble > 0) {
+                System.out.println("OUT:" + storedItemOutputs);
+                for (int i = 0; i < storedItemOutputs.size(); i++) {
+                    ItemStack s = storedItemOutputs.get(i);
+                    int amount = (int) (Math.random()/chanceToDouble); // either 0 or 1.
+                    if(amount != 0){
+                        ItemStack s2 = s.clone();
+                        s2.setAmount(amount);
+                        storedItemOutputs.add(0,s2);
+                        i++;
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -186,7 +216,7 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
     }
     public void initFuelInventories() {
         if (fuelInput.isEmpty()) {
-            SQLVector3i input = LibKitUtil.orientate(new SQLVector3i(0, -3, 1), facing.value(), flipped.value());
+            SQLVector3i input = LibKitUtil.orientate(new SQLVector3i(0, 1, -3), facing.value(), flipped.value());
             input = xyz.value().add(input.x, input.y, input.z);
             addIfNonNull(fuelInput,(getAndListenToInventory(input)));
             addIfNonNull(fuelInput,getAndListenToInventory(input.add(0, 1, 0)));
@@ -237,7 +267,7 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
 
                 .x(b,s,c,s,b).z()
                 .x(c,b,m,b,c).z()
-                .x(b,m,a,m,b).z()
+                .x(n,m,a,m,n).z()
                 .x(c,b,t,b,c).z()
                 .x(n,s,a,s,n).y()
 
@@ -266,7 +296,7 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
                 .x(5,n).y()
 
                 .x(n,s,s,s,n).z()
-                .x(s,b,s,b,s).z()
+                .x(n,b,s,b,n).z()
                 .x(5,n).z()
                 .x(5,n).z()
                 .x(5,n)
