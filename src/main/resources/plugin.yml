@@ -4,7 +4,7 @@ main: com.drathonix.dubiousdevices.DubiousDevices
 api-version: 1.18
 prefix: DD
 loadbefore: []
-depend: [Viciouslibkit]
+depend: [ViciousLibKit]
 softdepend: []
 authors: [Drathonix]
 commands:
@@ -20,6 +20,10 @@ commands:
     description: Reloads all DubiousDevices recipe handlers.
     usage: /ddreload
     permission: dubiousdevices.ddreload
+  dditeminfo:
+    description: Prints itemmeta data to console.
+    usage: /dditeminfo
+    permission: dubiousdevices.recipeop
 
 description: Dubious Devices
 

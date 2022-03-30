@@ -11,8 +11,8 @@ import org.bukkit.block.BlockFace;
 import java.util.UUID;
 
 public class AutoMiner extends TickableMultiBlock {
-    public AutoMiner(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
-        super(mbType, w, l, dir, flipped, id);
+    public AutoMiner(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, boolean upsidedown, UUID id) {
+        super(mbType, w, l, dir, flipped, upsidedown,id);
     }
 
     public AutoMiner(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
@@ -22,6 +22,7 @@ public class AutoMiner extends TickableMultiBlock {
     @Override
     public void tick() {
         super.tick();
+
     }
 
     @Override

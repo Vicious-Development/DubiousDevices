@@ -1,13 +1,9 @@
 package com.drathonix.dubiousdevices;
 
-import com.vicious.viciouslibkit.block.BlockTemplate;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceMaterialOnly;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceMultiple;
-import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.Slab;
 
 public class DDBlockInstances {
@@ -84,4 +80,23 @@ public class DDBlockInstances {
             .add(new BlockInstance(Material.WAXED_EXPOSED_CUT_COPPER))
             .add(new BlockInstance(Material.WAXED_OXIDIZED_CUT_COPPER))
             ;
+    public static BlockInstance ALLGLASSBLOCKS = new BlockInstanceMultiple()
+            .add(new BlockInstance(Material.GLASS))
+            .add(new BlockInstance(Material.TINTED_GLASS))
+            .add(new BlockInstance(Material.WHITE_STAINED_GLASS))
+            .add(new BlockInstance(Material.GRAY_STAINED_GLASS))
+            .add(new BlockInstance(Material.LIGHT_GRAY_STAINED_GLASS))
+            .add(new BlockInstance(Material.BLACK_STAINED_GLASS))
+            .add(new BlockInstance(Material.BLUE_STAINED_GLASS))
+            .add(new BlockInstance(Material.LIGHT_BLUE_STAINED_GLASS))
+            .add(new BlockInstance(Material.CYAN_STAINED_GLASS))
+            .add(new BlockInstance(Material.MAGENTA_STAINED_GLASS))
+            .add(new BlockInstance(Material.PINK_STAINED_GLASS))
+            .add(new BlockInstance(Material.PURPLE_STAINED_GLASS))
+            .add(new BlockInstance(Material.RED_STAINED_GLASS))
+            .add(new BlockInstance(Material.ORANGE_STAINED_GLASS))
+            .add(new BlockInstance(Material.YELLOW_STAINED_GLASS))
+            .add(new BlockInstance(Material.GREEN_STAINED_GLASS))
+            .add(new BlockInstance(Material.LIME_STAINED_GLASS))
+            .add(new BlockInstance(Material.BROWN_STAINED_GLASS));
 }

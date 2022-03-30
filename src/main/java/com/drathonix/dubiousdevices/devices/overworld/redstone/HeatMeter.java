@@ -36,14 +36,16 @@ import java.util.UUID;
 
 public class HeatMeter extends MultiBlockInstance implements ITickable, INotifiable<MachineStatus> {
     private static Map<Class<? extends ILeveled<?>>,Class<? extends ILeveled<?>>> supported = new HashMap<>();
-    private SQLVector3i comparatorLocation = new SQLVector3i(xyz.value().x,xyz.value().y+1,xyz.value().z);
-    private static int redstoneOut = 0;
     static {
         supported.put(IFurnaceFuel.class,IFurnaceFuel.class);
     }
+
+    private int redstoneOut = 0;
+    private SQLVector3i comparatorLocation;
     private ILeveled<?> machine;
-    public HeatMeter(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
-        super(mbType, w, l, dir, flipped, id);
+
+    public HeatMeter(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, boolean upsidedown, UUID id) {
+        super(mbType, w, l, dir, flipped, upsidedown,id);
     }
 
     public HeatMeter(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
@@ -53,7 +55,8 @@ public class HeatMeter extends MultiBlockInstance implements ITickable, INotifia
     @Override
     public void validate() {
         super.validate();
-        Block comparator = world.getBlockAt(xyz.value().x,xyz.value().y+1,xyz.value().z);
+        comparatorLocation = new SQLVector3i(xyz.value().x,xyz.value().y+1,xyz.value().z);
+        Block comparator = world.getBlockAt(comparatorLocation.x,comparatorLocation.y,comparatorLocation.z);
         Directional dat = (Directional) comparator.getBlockData();
         BlockFace facing = dat.getFacing().getOppositeFace();
         Vector targetBlock = new Vector(comparator.getX(),comparator.getY(),comparator.getZ());
@@ -78,7 +81,7 @@ public class HeatMeter extends MultiBlockInstance implements ITickable, INotifia
     public static BlockTemplate template(){
         BlockInstance c = DDBlockInstances.ALLCOPPERBLOCKS;
         return BlockTemplate.start()
-                .x(c).y().x(new BlockInstance(Material.COMPARATOR)).finish(0,0,0)
+                .x(c).y().x(new BlockInstance(Material.COMPARATOR)).finish(0,0,0,false)
                 ;
     }
 

@@ -1,7 +1,7 @@
 package com.drathonix.dubiousdevices.recipe;
 
 import com.google.common.collect.Lists;
-import com.vicious.viciouslibkit.item.StackType;
+import com.vicious.viciouslibkit.item.types.ItemType;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -67,7 +67,7 @@ public class RecipeHelper {
             for (Recipe value : recipesFor) {
                 ingredients = getIngredients(value);
                 if(ingredients == null) continue;
-                if(ingredients.containsKey(new StackType(undo.getResult()))) return false;
+                if(ingredients.containsKey(ItemType.fromItemStack(undo.getResult()))) return false;
             }
         }
         return true;

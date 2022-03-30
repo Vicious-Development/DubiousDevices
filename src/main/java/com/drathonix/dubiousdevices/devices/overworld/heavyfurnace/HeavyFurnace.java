@@ -1,6 +1,7 @@
 package com.drathonix.dubiousdevices.devices.overworld.heavyfurnace;
 
 import com.drathonix.dubiousdevices.DDBlockInstances;
+import com.drathonix.dubiousdevices.DubiousCFG;
 import com.drathonix.dubiousdevices.DubiousDevices;
 import com.drathonix.dubiousdevices.devices.overworld.machine.DeviceItemIO;
 import com.drathonix.dubiousdevices.devices.overworld.machine.MachineStatus;
@@ -14,15 +15,15 @@ import com.vicious.viciouslibkit.block.BlockTemplate;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceMaterialOnly;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
+import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockChunkDataHandler;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
 import com.vicious.viciouslibkit.item.ItemStackHelper;
 import com.vicious.viciouslibkit.util.ChunkPos;
 import com.vicious.viciouslibkit.util.LibKitUtil;
+import com.vicious.viciouslibkit.util.WorldUtil;
 import com.vicious.viciouslibkit.util.interfaces.INotifier;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -38,8 +39,10 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
     private double chanceToDouble = 0;
     private double fuelBurnTimeMultiplier = 0;
     private ItemStack fuel = null;
-    public HeavyFurnace(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
-        super(mbType, w, l, dir, flipped, id);
+    private static int fireParticleTime = 10;
+
+    public HeavyFurnace(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, boolean upsidedown, UUID id) {
+        super(mbType, w, l, dir, flipped, upsidedown,id);
     }
 
     public HeavyFurnace(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
@@ -57,8 +60,18 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
     }
 
     @Override
-    public void validate() {
-        super.validate();
+    public void revalidate(Block b, MultiBlockChunkDataHandler dat) {
+        super.revalidate(b, dat);
+        calcStats();
+    }
+
+    @Override
+    public void revalidate(Block b, BlockInstance in, MultiBlockChunkDataHandler dat) {
+        super.revalidate(b, in, dat);
+        calcStats();
+    }
+
+    private void calcStats(){
         //if(!DubiousCFG.getInstance().crusherEnabled.value()) return;
         int materialValue = getTotalMaterialValue();
         double avgMV = ((double) materialValue/getMetalBlockLocations().size());
@@ -66,6 +79,13 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
         chanceToDouble = avgMV/4;
         //With netherite this is 2.
         fuelBurnTimeMultiplier = avgMV/2;
+    }
+
+    @Override
+    public void validate() {
+        super.validate();
+        if(!DubiousCFG.getInstance().heavyFurnaceEnabled.value()) return;
+        calcStats();
         Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE, this::initInputInvs,1);
     }
     public int getTotalMaterialValue(){
@@ -112,6 +132,20 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
     public void tick() {
         if(fuelTicksRemaining > 0){
             fuelTicksRemaining--;
+            for(int i = 0; i < 4; i++) {
+                if (fuelTicksRemaining % fireParticleTime == 0) {
+                    spawnParticleInSmeltingChamber(i,Particle.SMALL_FLAME,0);
+                }
+                if (fuelTicksRemaining % fireParticleTime * 2 == 0) {
+                    spawnParticleInSmeltingChamber(i,Particle.FLAME,0);
+                }
+            }
+            if(fuelTicksRemaining%(fireParticleTime/2) == 0) {
+                SQLVector3i v = LibKitUtil.orientate(new SQLVector3i(0, 0, -1), facing.value(), flipped.value());
+                Location l = new Location(world, xyz.value().x, xyz.value().y, xyz.value().z).add(v.x, v.y, v.z);
+                l = WorldUtil.centerParticleLocation(l);
+                world.spawnParticle(Particle.CAMPFIRE_SIGNAL_SMOKE, l, 2, 0.2, 0.2, 0.2,0.1);
+            }
         }
         else{
             if (!consumeFuel()) {
@@ -121,6 +155,13 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
             }
         }
         super.tick();
+    }
+
+    private void spawnParticleInSmeltingChamber(int i, Particle p, double extra) {
+        SQLVector3i v = LibKitUtil.orientate(new SQLVector3i(0, i, -1), facing.value(), flipped.value());
+        Location l = new Location(world, xyz.value().x, xyz.value().y, xyz.value().z).add(v.x, v.y, v.z);
+        l = WorldUtil.centerParticleLocation(l);
+        world.spawnParticle(p, l, 1, 0.2, 0.2, 0.2, extra);
     }
 
     @Override
@@ -238,17 +279,16 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
 
     @Override
     public boolean tickOnInit() {
-        return true;
+        return DubiousCFG.getInstance().heavyFurnaceEnabled.value();
     }
     public static BlockTemplate template(){
         BlockInstance n = null;
         BlockInstance a = BlockInstance.AIR;
         BlockInstance b = DDBlockInstances.ALLDEEPSLATE;
         BlockInstance c = DDBlockInstances.ALLDEEPSLATESLABSBOTTOM;
-        BlockInstance d = DDBlockInstances.ALLDEEPSLATESLABSTOP;
         BlockInstance i = DDBlockInstances.IOBLOCKS;
         BlockInstance m = DDBlockInstances.METALBLOCKS;
-        BlockInstance t = new BlockInstance(Material.TINTED_GLASS);
+        BlockInstance t = DDBlockInstances.ALLGLASSBLOCKS;
         BlockInstance h = new BlockInstanceMaterialOnly(Material.HOPPER);
         BlockInstance s = DDBlockInstances.ALLDEEPSLATESTAIRSIGNORE;
         BlockInstanceSolid k = new BlockInstanceSolid();

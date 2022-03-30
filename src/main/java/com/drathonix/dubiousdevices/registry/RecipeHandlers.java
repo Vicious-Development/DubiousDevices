@@ -9,10 +9,7 @@ import com.google.common.collect.Lists;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.inventory.BlastingRecipe;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.*;
 
 import java.util.*;
 
@@ -22,7 +19,7 @@ public class RecipeHandlers {
     public static final MappedRecipeHandler.Named<CrusherRecipe> CRUSHER = add(new MappedRecipeHandler.Named<CrusherRecipe>("Crusher", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS),CrusherRecipe::new),true);
     public static final MappedRecipeHandler.Named<MetalSmeltingRecipe> METALSMELTING = add(new MappedRecipeHandler.Named<MetalSmeltingRecipe>("MetalSmelting", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new),true);
     public static final MappedRecipeHandler.Named<MetalSmeltingRecipe> HEAVYSMELTING = add(new MappedRecipeHandler.Named<MetalSmeltingRecipe>("HeavySmelting", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new),false);
-    public static final MappedRecipeHandler.Named<CompactorRecipe> COMPACTORRECIPE = add(new MappedRecipeHandler.Named<CompactorRecipe>("Compactor", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), CompactorRecipe::new),true);
+    public static final MappedRecipeHandler.Named<CompactorRecipe> COMPACTOR = add(new MappedRecipeHandler.Named<CompactorRecipe>("Compactor", DubiousDirectories.ddrecipes,Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), CompactorRecipe::new),true);
     public static final CombinedRecipeHandler<MetalSmeltingRecipe> HEAVYFURNACE = add(new CombinedRecipeHandler<MetalSmeltingRecipe>(Lists.newArrayList(DDRecipeFlags.ALLOWEXTRAOUTPUTS), MetalSmeltingRecipe::new, METALSMELTING, HEAVYSMELTING),true,"HeavyFurnace");
 
     private static <T extends RecipeHandler<? extends ItemRecipe<?>>> T add(T rh, boolean addToViewer, String... altNames) {
@@ -96,6 +93,19 @@ public class RecipeHandlers {
             });
         },(r)->new MetalSmeltingRecipe(r.inputs,r.outputs,r.flags));
         HEAVYSMELTING.initIfDNE(()->{},(r)->new MetalSmeltingRecipe(r.inputs,r.outputs,r.flags));
+        COMPACTOR.initIfDNE(()->{
+            Iterator<Recipe> recipes = Bukkit.recipeIterator();
+            recipes.forEachRemaining((r)->{
+                if(!(r instanceof ShapedRecipe)) return;
+                ShapedRecipe sr = (ShapedRecipe) r;
+                ItemStackMap itemMap = RecipeHelper.getShapedIngredients(sr);
+                if(itemMap.size() > 1) return;
+                List<ItemStack> inputs = itemMap.getStacks();
+                if(inputs.get(0).getAmount() == 4 || inputs.get(0).getAmount() == 9 && sr.getResult().getAmount() == 1){
+                    COMPACTOR.addRecipe(new CompactorRecipe(inputs,Lists.newArrayList(sr.getResult()),Lists.newArrayList(DDRecipeFlags.NONBT.name,DDRecipeFlags.CANBEACCELERATED.name)));
+                }
+            });
+        },(r)->new CompactorRecipe(r.inputs,r.outputs,r.flags));
     }
 
     public static void reload() {

@@ -1,5 +1,6 @@
 package com.drathonix.dubiousdevices.commands;
 
+import com.drathonix.dubiousdevices.DubiousDevices;
 import com.drathonix.dubiousdevices.guis.RecipeCreation;
 import com.drathonix.dubiousdevices.guis.RecipeRemoval;
 import com.drathonix.dubiousdevices.guis.RecipeView;
@@ -12,6 +13,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -87,5 +90,14 @@ public class DDCommands {
     public static boolean reloadCMD(CommandSender sender, Command command, String label, String[] args){
         RecipeHandlers.reload();
         return true;
+    }
+    public static boolean itemMetaStringCMD(CommandSender sender, Command command, String label, String[] args){
+        return playerCheck(sender,()->{
+            Player plr = (Player) sender;
+            ItemStack stack = plr.getItemInHand();
+            ItemMeta meta = stack.getItemMeta();
+            DubiousDevices.LOGGER.info("" + meta + " CLASS: " + (meta != null ? meta.getClass() : null));
+            return true;
+        });
     }
 }

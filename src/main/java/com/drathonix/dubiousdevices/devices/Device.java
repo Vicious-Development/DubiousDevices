@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class Device extends TickableMultiBlock {
-    public Device(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
-        super(mbType, w, l, dir, flipped, id);
+    public Device(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, boolean upsidedown, UUID id) {
+        super(mbType, w, l, dir, flipped, upsidedown,id);
     }
 
     public Device(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {

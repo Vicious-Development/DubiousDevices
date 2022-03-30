@@ -1,13 +1,14 @@
 package com.drathonix.dubiousdevices.devices.overworld.compacter;
 
+import com.drathonix.dubiousdevices.recipe.DDRecipeFlags;
 import com.drathonix.dubiousdevices.recipe.ItemRecipeExtraOutputs;
 import com.drathonix.dubiousdevices.recipe.RecipeParseResult;
-import com.drathonix.dubiousdevices.registry.RecipeHandlers;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
 public class CompactorRecipe extends ItemRecipeExtraOutputs<CompactorRecipe> {
+    public boolean accelerate = false;
     public CompactorRecipe(List<ItemStack> inputs, List<ItemStack> outputs){
         super(inputs,outputs);
     }
@@ -16,10 +17,7 @@ public class CompactorRecipe extends ItemRecipeExtraOutputs<CompactorRecipe> {
     }
     public CompactorRecipe(List<ItemStack> inputs, List<ItemStack> outputs, List<String> flags){
         super(inputs,outputs,flags);
-    }
-
-    public void addRecipe(List<ItemStack> inputs, List<ItemStack> outputs){
-        RecipeHandlers.COMPACTORRECIPE.addRecipe(new CompactorRecipe(inputs,outputs));
+        accelerate = flags.contains(DDRecipeFlags.CANBEACCELERATED.name);
     }
 
     @Override

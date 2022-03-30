@@ -4,7 +4,7 @@ import com.drathonix.dubiousdevices.DDBlockInstances;
 import com.drathonix.dubiousdevices.DubiousCFG;
 import com.drathonix.dubiousdevices.DubiousDevices;
 import com.drathonix.dubiousdevices.devices.overworld.machine.DeviceItemIO;
-import com.drathonix.dubiousdevices.devices.overworld.machine.IOTypes;
+import com.drathonix.dubiousdevices.devices.overworld.machine.DeviceVectors;
 import com.drathonix.dubiousdevices.devices.overworld.machine.MaterialValue;
 import com.drathonix.dubiousdevices.recipe.RecipeHandler;
 import com.drathonix.dubiousdevices.registry.RecipeHandlers;
@@ -25,25 +25,18 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.Piston;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Objects;
 import java.util.UUID;
 
-/*
-TODO: Create a generic machine multiblock.
- */
 public class Crusher extends DeviceItemIO<CrusherRecipe> {
     private int maxExtraDrops = 0;
-    //Northfacing
-    private static final SQLVector3i iol = new SQLVector3i(-2,-3,0);
-    private SQLVector3i io1;
-    private SQLVector3i io2;
-
-    public Crusher(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
-        super(mbType, w, l, dir, flipped, id);
+    public Crusher(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, boolean upsidedown, UUID id) {
+        super(mbType, w, l, dir, flipped, upsidedown,id);
+        processTime=40;
     }
 
     public Crusher(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
         super(type, w, id, cpos);
+        processTime=40;
     }
 
     @Override
@@ -56,10 +49,6 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> {
     public void validate() {
         super.validate();
         if(!DubiousCFG.getInstance().crusherEnabled.value()) return;
-        io1 = LibKitUtil.orientate(iol,facing.value(),flipped.value());
-        io2 = LibKitUtil.orientate(iol,facing.value(),!flipped.value());
-        io1 = new SQLVector3i(xyz.value().x + io1.x,xyz.value().y + io1.y,xyz.value().z + io1.z);
-        io2 = new SQLVector3i(xyz.value().x + io2.x,xyz.value().y + io2.y,xyz.value().z + io2.z);
         Block b = world.getBlockAt(xyz.value().x,xyz.value().y-1,xyz.value().z);
         maxExtraDrops = MaterialValue.getMaterialValue(b.getType());
         //Exception is caused by unloaded chunks, just ignore it it'll be fine.
@@ -110,45 +99,13 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> {
         return DubiousCFG.getInstance().crusherEnabled.value();
     }
 
-
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        return ((Crusher) o).ID.equals(this.ID);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(ID);
-    }
     public void initInputInvs(){
         if(inputs.isEmpty()){
-            Block b1 = world.getBlockAt(io1.x,io1.y,io1.z);
-            if(IOTypes.isInput(b1.getType())){
-                addIfNonNull(inputs,getAndListenToInventory(io1));
-                addIfNonNull(outputs,getAndListenToInventory(io2));
-            }
-            else {
-                addIfNonNull(inputs,getAndListenToInventory(io2));
-                addIfNonNull(outputs,getAndListenToInventory(io1));
-            }
+            IOAutoSetup(inputs,outputs,relativize(DeviceVectors.iolCrusher),relativize(LibKitUtil.flipX(DeviceVectors.iolCrusher)));
         }
         else{
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.set(i,getInventory(inputs.get(i).getLocation()));
-            }
-        }
-    }
-
-    public void initOutputInvs() {
-        if(outputs.isEmpty()){
-            initInputInvs();
-        }
-        else{
-            for (int i = 0; i < outputs.size(); i++) {
-                outputs.set(i,getInventory(outputs.get(i).getLocation()));
-            }
+            resetInputs();
         }
     }
 
@@ -181,7 +138,7 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> {
 
                 .x(n,n,n,n,n).z()
                 .x(n,n,f,n,n).z()
-                .x(n,n,n,n,n).finish(2,3,1)
+                .x(n,n,n,n,n).finish(2,3,1,false)
                 ;
     }
 }

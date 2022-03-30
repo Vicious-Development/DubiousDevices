@@ -21,9 +21,10 @@ public abstract class DeviceMachine extends Device {
     protected List<ItemStack> storedItemInputs;
     public int timer = 0;
     public int processTime = 20;
+    public int defaultProcessTime;
     protected boolean isProcessing = false;
-    public DeviceMachine(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
-        super(mbType, w, l, dir, flipped, id);
+    public DeviceMachine(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, boolean upsidedown, UUID id) {
+        super(mbType, w, l, dir, flipped, upsidedown,id);
     }
 
     public DeviceMachine(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
@@ -63,9 +64,4 @@ public abstract class DeviceMachine extends Device {
         isProcessing = false;
         timer = 0;
     }
-
-    /**
-     * Called at the end of every tick.
-     */
-    public void postTick(){}
 }

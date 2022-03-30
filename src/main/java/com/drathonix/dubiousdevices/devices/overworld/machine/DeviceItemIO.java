@@ -17,6 +17,7 @@ import com.vicious.viciouslibkit.util.interfaces.INotifier;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -30,8 +31,8 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
     public List<Inventory> outputs = new ArrayList<>();
     public T recipe = null;
 
-    public DeviceItemIO(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
-        super(mbType, w, l, dir, flipped, id);
+    public DeviceItemIO(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, boolean upsidedown, UUID id) {
+        super(mbType, w, l, dir, flipped, upsidedown,id);
     }
 
     public DeviceItemIO(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
@@ -46,17 +47,36 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
             if(!inputs.isEmpty()) {
                 if (!checkRecipe(mapInventory(inputs))) {
                     removeFromTicker();
-                    postTick();
                     return;
                 }
             }
             else {
-                postTick();
                 return;
             }
         }
         process();
-        postTick();
+    }
+    protected void IOAutoSetup(List<Inventory> inputs,  List<Inventory> outputs, SQLVector3i... locations){
+        for (SQLVector3i location : locations) {
+            Block b = world.getBlockAt(location.x,location.y,location.z);
+            if(IOTypes.isInput(b.getType())){
+                addIfNonNull(inputs,getAndListenToInventory(location));
+            }
+            else{
+                addIfNonNull(outputs,getAndListenToInventory(location));
+            }
+        }
+    }
+
+    protected void resetInputs(){
+        for (int i = 0; i < inputs.size(); i++) {
+            inputs.set(i,getInventory(inputs.get(i).getLocation()));
+        }
+    }
+    protected void resetOutputs(){
+        for (int i = 0; i < outputs.size(); i++) {
+            outputs.set(i,getInventory(outputs.get(i).getLocation()));
+        }
     }
     public boolean checkRecipe(ItemStackMap inputs){
         if(recipe != null && !recipe.matches(inputs)) recipe = null;
@@ -120,10 +140,21 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
     }
 
     protected void applyOutputEffects() {}
-    public abstract void initOutputInvs();
+
+    /**
+     * Override if you need to customize.
+     */
+    public void initOutputInvs() {
+        if(outputs.isEmpty()){
+            initInputInvs();
+        }
+        else{
+            resetOutputs();
+        }
+    }
     public abstract void initInputInvs();
 
-    private List<INotifiable<MachineStatus>> listening = new ArrayList<>();
+    private final List<INotifiable<MachineStatus>> listening = new ArrayList<>();
     @Override
     public void sendNotification(MachineStatus machineStatus) {
         for (INotifiable<MachineStatus> listener : listening) {
