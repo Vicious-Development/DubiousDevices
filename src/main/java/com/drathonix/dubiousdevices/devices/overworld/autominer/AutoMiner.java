@@ -22,6 +22,8 @@ public class AutoMiner extends TickableMultiBlock {
     @Override
     public void tick() {
         super.tick();
+    }
+    public Block getBlock(){
 
     }
 
