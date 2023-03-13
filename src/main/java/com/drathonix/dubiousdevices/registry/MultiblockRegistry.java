@@ -1,5 +1,6 @@
 package com.drathonix.dubiousdevices.registry;
 
+import com.drathonix.dubiousdevices.devices.overworld.autominer.AutoMiner;
 import com.drathonix.dubiousdevices.devices.overworld.compacter.Compactor;
 import com.drathonix.dubiousdevices.devices.overworld.crusher.Crusher;
 import com.drathonix.dubiousdevices.devices.overworld.heavyfurnace.HeavyFurnace;
@@ -9,12 +10,15 @@ import org.bukkit.Material;
 
 public class MultiblockRegistry {
     static {
+        //This is a future multiblock.
         //MultiBlockService.registerMultiblock(Enderizer.class,"DubiousDevicesEnderizer",Enderizer.template(),Enderizer::new,Enderizer::new);
         //MultiBlockService.registerClickListener(Material.PURPUR_PILLAR,Enderizer.class);
         MultiBlockService.registerMultiblock(Crusher.class,"DubiousDevicesCrusher",Crusher.template(),Crusher::new,Crusher::new);
         MultiBlockService.registerClickListener(Material.STICKY_PISTON,Crusher.class);
+
         MultiBlockService.registerMultiblock(HeatMeter.class,"DubiousDevicesHeatMeter", HeatMeter.template(),HeatMeter::new,HeatMeter::new);
         MultiBlockService.registerClickListener(Material.COMPARATOR,HeatMeter.class);
+
         MultiBlockService.registerMultiblock(HeavyFurnace.class,"DubiousDevicesHeavyFurnace", HeavyFurnace.template(),HeavyFurnace::new,HeavyFurnace::new);
         MultiBlockService.registerClickListener(Material.TINTED_GLASS,HeavyFurnace.class);
         MultiBlockService.registerClickListener(Material.GLASS,HeavyFurnace.class);
@@ -34,8 +38,13 @@ public class MultiblockRegistry {
         MultiBlockService.registerClickListener(Material.GREEN_STAINED_GLASS,HeavyFurnace.class);
         MultiBlockService.registerClickListener(Material.LIME_STAINED_GLASS,HeavyFurnace.class);
         MultiBlockService.registerClickListener(Material.BROWN_STAINED_GLASS,HeavyFurnace.class);
+
         MultiBlockService.registerMultiblock(Compactor.class,"DubiousDevicesCompactor", Compactor.template(),Compactor::new,Compactor::new);
         MultiBlockService.registerClickListener(Material.PISTON,Compactor.class);
+
+        MultiBlockService.registerMultiblock(AutoMiner.class,"DubiousDevicesAutoMiner", AutoMiner.template(), AutoMiner::new,AutoMiner::new);
+        MultiBlockService.registerClickListener(Material.DISPENSER,AutoMiner.class);
+
 
     }
 }

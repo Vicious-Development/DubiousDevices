@@ -8,27 +8,29 @@ import com.drathonix.dubiousdevices.devices.overworld.machine.DeviceVectors;
 import com.drathonix.dubiousdevices.devices.overworld.machine.MaterialValue;
 import com.drathonix.dubiousdevices.recipe.RecipeHandler;
 import com.drathonix.dubiousdevices.registry.RecipeHandlers;
-import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
 import com.vicious.viciouslibkit.block.BlockTemplate;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
+import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockChunkDataHandler;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
-import com.vicious.viciouslibkit.util.ChunkPos;
+import com.vicious.viciouslibkit.event.piston.PistonController;
+import com.vicious.viciouslibkit.event.piston.PistonWatcher;
 import com.vicious.viciouslibkit.util.LibKitUtil;
-import com.vicious.viciouslibkit.util.NMSHelper;
+import com.vicious.viciouslibkit.util.vector.ChunkPos;
+import com.vicious.viciouslibkit.util.vector.WorldPosI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.type.Piston;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 
 public class Crusher extends DeviceItemIO<CrusherRecipe> {
     private int maxExtraDrops = 0;
+    private PistonController pistonController;
     public Crusher(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, boolean upsidedown, UUID id) {
         super(mbType, w, l, dir, flipped, upsidedown,id);
         processTime=40;
@@ -51,29 +53,28 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> {
         if(!DubiousCFG.getInstance().crusherEnabled.value()) return;
         Block b = world.getBlockAt(xyz.value().x,xyz.value().y-1,xyz.value().z);
         maxExtraDrops = MaterialValue.getMaterialValue(b.getType());
+        pistonController = new PistonController(new WorldPosI(world, xyz.value().x, xyz.value().y, xyz.value().z));
+        PistonWatcher.listenRetract(pistonController.getPosition(),pistonController);
         //Exception is caused by unloaded chunks, just ignore it it'll be fine.
         Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE, this::initInputInvs,1);
     }
 
     protected void processStart() throws Exception{
         super.processStart();
-        SQLVector3i vec = xyz.value();
-        Block piston = world.getBlockAt(vec.x, vec.y, vec.z);
-        Piston pdat = (Piston) piston.getBlockData();
-        NMSHelper.setExtended(piston,true);
-        pdat.setExtended(true);
-        piston.setBlockData(pdat);
+        pistonController.keepExtended();
         input();
     }
     protected void processEnd() throws Exception{
         if(output()){
             super.processEnd();
-            SQLVector3i vec = xyz.value();
-            Block piston = world.getBlockAt(vec.x,vec.y,vec.z);
-            Piston pdat = (Piston) piston.getBlockData();
-            pdat.setExtended(false);
-            piston.setBlockData(pdat);
+            pistonController.attemptRetract();
         }
+    }
+
+    @Override
+    protected void invalidate(MultiBlockChunkDataHandler dat) {
+        super.invalidate(dat);
+        PistonWatcher.stopListeningRetract(pistonController.getPosition(),pistonController);
     }
 
     protected void applyOutputEffects() {
@@ -102,7 +103,7 @@ public class Crusher extends DeviceItemIO<CrusherRecipe> {
     @Override
     public void initInputInvs(){
         if(inputs.isEmpty()){
-            IOAutoSetup(inputs,outputs,relativize(DeviceVectors.iolCrusher),relativize(LibKitUtil.flipX(DeviceVectors.iolCrusher)));
+            IOAutoSetup(inputs,outputs,getRelativePosition(DeviceVectors.iolCrusher),getRelativePosition(LibKitUtil.flipX(DeviceVectors.iolCrusher)));
         }
         else{
             resetInputs();

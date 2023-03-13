@@ -1,5 +1,6 @@
 package com.drathonix.dubiousdevices.devices.overworld.machine;
 
+import com.drathonix.dubiousdevices.DubiousDevices;
 import com.drathonix.dubiousdevices.recipe.ItemRecipe;
 import com.drathonix.dubiousdevices.recipe.RecipeHandler;
 import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
@@ -10,11 +11,11 @@ import com.vicious.viciouslibkit.inventory.InventoryHelper;
 import com.vicious.viciouslibkit.inventory.wrapper.EInventoryUpdateStatus;
 import com.vicious.viciouslibkit.inventory.wrapper.InventoryWrapper;
 import com.vicious.viciouslibkit.inventory.wrapper.InventoryWrapperChunkHandler;
-import com.vicious.viciouslibkit.util.ChunkPos;
 import com.vicious.viciouslibkit.util.LibKitUtil;
 import com.vicious.viciouslibkit.util.interfaces.INotifiable;
 import com.vicious.viciouslibkit.util.interfaces.INotifier;
 import com.vicious.viciouslibkit.util.map.ItemStackMap;
+import com.vicious.viciouslibkit.util.vector.ChunkPos;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -54,7 +55,12 @@ public abstract class DeviceItemIO<T extends ItemRecipe<T>> extends DeviceMachin
                 return;
             }
         }
-        process();
+        try {
+            process();
+        } catch (Exception e) {
+            DubiousDevices.LOGGER.warning("Caught exception while processing: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     protected void IOAutoSetup(List<Inventory> inputs,  List<Inventory> outputs, SQLVector3i... locations){
         for (SQLVector3i location : locations) {

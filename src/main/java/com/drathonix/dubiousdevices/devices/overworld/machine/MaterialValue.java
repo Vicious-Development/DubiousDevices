@@ -1,6 +1,7 @@
 package com.drathonix.dubiousdevices.devices.overworld.machine;
 
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -35,6 +36,10 @@ public class MaterialValue {
     public static int getMaterialValue(Material mat){
         Integer ret = map.get(mat);
         return ret == null ? (int)(Math.log10(mat.getHardness())*2) : ret;
+    }
+    public static int getMaterialValue(Block b){
+        Integer ret = map.get(b.getType());
+        return ret == null ? (int)(Math.log10(b.getType().getHardness())*2) : ret;
     }
 }
 

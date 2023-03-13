@@ -2,8 +2,9 @@ package com.drathonix.dubiousdevices.devices.overworld.machine;
 
 import com.drathonix.dubiousdevices.DubiousDevices;
 import com.drathonix.dubiousdevices.devices.Device;
+import com.drathonix.dubiousdevices.util.ProcessTimer;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
-import com.vicious.viciouslibkit.util.ChunkPos;
+import com.vicious.viciouslibkit.util.vector.ChunkPos;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -19,7 +20,7 @@ import java.util.UUID;
 public abstract class DeviceMachine extends Device {
     protected List<ItemStack> storedItemOutputs = new ArrayList<>();
     protected List<ItemStack> storedItemInputs;
-    public int timer = 0;
+    protected ProcessTimer timer = new ProcessTimer();
     public int processTime = 20;
     public int defaultProcessTime;
     protected boolean isProcessing = false;
@@ -30,8 +31,8 @@ public abstract class DeviceMachine extends Device {
     public DeviceMachine(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
         super(type, w, id, cpos);
     }
-    protected void process() {
-        if(timer == 0 && !isProcessing){
+    protected void process() throws Exception {
+        if(timer.isAt(0) && !isProcessing){
             try {
                 processStart();
             } catch (Exception e){
@@ -39,7 +40,7 @@ public abstract class DeviceMachine extends Device {
                 e.printStackTrace();
             }
         }
-        if(timer >= processTime && isProcessing){
+        if(timer.hasPassedOrReached(processTime) && isProcessing){
             try{
                 processEnd();
             } catch(Exception e){
@@ -47,7 +48,7 @@ public abstract class DeviceMachine extends Device {
                 e.printStackTrace();
             }
         }
-        else timer++;
+        else timer.tick();
     }
 
     /**
@@ -62,6 +63,6 @@ public abstract class DeviceMachine extends Device {
      */
     protected void processEnd() throws Exception{
         isProcessing = false;
-        timer = 0;
+        timer.reset();
     }
 }

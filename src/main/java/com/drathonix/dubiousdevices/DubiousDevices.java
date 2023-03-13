@@ -4,7 +4,7 @@ import com.drathonix.dubiousdevices.commands.DDCommands;
 import com.drathonix.dubiousdevices.registry.MultiblockRegistry;
 import com.drathonix.dubiousdevices.registry.RecipeHandlers;
 import com.drathonix.dubiousdevices.util.DubiousDirectories;
-import com.vicious.viciouslibkit.VersionRange;
+import com.vicious.viciouslibkit.util.VersionRange;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 

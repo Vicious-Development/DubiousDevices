@@ -2,7 +2,6 @@ package com.drathonix.dubiousdevices.devices.overworld.redstone;
 
 import com.drathonix.dubiousdevices.DDBlockInstances;
 import com.drathonix.dubiousdevices.devices.overworld.machine.MachineStatus;
-import com.drathonix.dubiousdevices.util.NMSToMove;
 import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
 import com.vicious.viciouslib.util.reflect.deep.DeepReflection;
 import com.vicious.viciouslibkit.block.BlockTemplate;
@@ -12,9 +11,10 @@ import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
 import com.vicious.viciouslibkit.data.worldstorage.PluginWorldData;
 import com.vicious.viciouslibkit.event.Ticker;
 import com.vicious.viciouslibkit.interfaces.ITickable;
-import com.vicious.viciouslibkit.util.ChunkPos;
 import com.vicious.viciouslibkit.util.interfaces.INotifiable;
 import com.vicious.viciouslibkit.util.interfaces.INotifier;
+import com.vicious.viciouslibkit.util.nms.NMSHelper;
+import com.vicious.viciouslibkit.util.vector.ChunkPos;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -92,8 +92,8 @@ public class HeatMeter extends MultiBlockInstance implements ITickable, INotifia
         if(prev != redstoneOut){
             Block comparator = world.getBlockAt(comparatorLocation.x,comparatorLocation.y,comparatorLocation.z);
             Comparator comp = (Comparator) comparator.getBlockData();
-            NMSToMove.TileEntityComparator$setOutputSignal.invoke(NMSToMove.CraftBlockEntity$tileEntity.get(comp),redstoneOut);
-            NMSToMove.CraftBlockEntity$refreshSnapshot.invoke(comp);
+            NMSHelper.TileEntityComparator$setOutputSignal.invoke(NMSHelper.CraftBlockEntity$tileEntity.get(comp),redstoneOut);
+            NMSHelper.CraftBlockEntity$refreshSnapshot.invoke(comp);
         }
     }
 

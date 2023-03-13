@@ -12,22 +12,24 @@ import com.vicious.viciouslib.database.objectTypes.SQLVector3i;
 import com.vicious.viciouslibkit.block.BlockTemplate;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
+import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockChunkDataHandler;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
-import com.vicious.viciouslibkit.util.ChunkPos;
+import com.vicious.viciouslibkit.event.piston.PistonController;
+import com.vicious.viciouslibkit.event.piston.PistonWatcher;
 import com.vicious.viciouslibkit.util.LibKitUtil;
-import com.vicious.viciouslibkit.util.NMSHelper;
+import com.vicious.viciouslibkit.util.vector.ChunkPos;
+import com.vicious.viciouslibkit.util.vector.WorldPosI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.type.Piston;
 
 import java.util.UUID;
 
 public class Compactor extends DeviceItemIO<CompactorRecipe> {
     public int materialValue = 0;
+    private PistonController pistonController;
     public Compactor(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, boolean upsidedown, UUID id) {
         super(mbType, w, l, dir, flipped, upsidedown,id);
         defaultProcessTime=160;
@@ -46,7 +48,7 @@ public class Compactor extends DeviceItemIO<CompactorRecipe> {
     @Override
     public void initInputInvs(){
         if(inputs.isEmpty()){
-            IOAutoSetup(inputs,outputs,relativize(DeviceVectors.iolCompactor),relativize(LibKitUtil.flipX(DeviceVectors.iolCompactor)));
+            IOAutoSetup(inputs,outputs,getRelativePosition(DeviceVectors.iolCompactor),getRelativePosition(LibKitUtil.flipX(DeviceVectors.iolCompactor)));
         }
         else{
             resetInputs();
@@ -59,7 +61,15 @@ public class Compactor extends DeviceItemIO<CompactorRecipe> {
         if(!DubiousCFG.getInstance().compactorEnabled.value()) return;
         SQLVector3i v = xyz.value().add(0,-2,0);
         materialValue = MaterialValue.getMaterialValue(world.getBlockAt(v.x,v.y,v.z).getType());
+        pistonController = new PistonController(new WorldPosI(world,xyz.value().x,xyz.value().y,xyz.value().z));
+        PistonWatcher.listenRetract(pistonController.getPosition(),pistonController);
         Bukkit.getScheduler().scheduleSyncDelayedTask(DubiousDevices.INSTANCE, this::initInputInvs,1);
+    }
+
+    @Override
+    protected void invalidate(MultiBlockChunkDataHandler dat) {
+        super.invalidate(dat);
+        PistonWatcher.stopListeningRetract(pistonController.getPosition(),pistonController);
     }
 
     @Override
@@ -72,12 +82,7 @@ public class Compactor extends DeviceItemIO<CompactorRecipe> {
         super.processStart();
         if(recipe.accelerate) processTime = defaultProcessTime/(1+materialValue);
         else processTime = defaultProcessTime;
-        SQLVector3i vec = xyz.value();
-        Block piston = world.getBlockAt(vec.x, vec.y, vec.z);
-        Piston pdat = (Piston) piston.getBlockData();
-        NMSHelper.setExtended(piston,true);
-        pdat.setExtended(true);
-        piston.setBlockData(pdat);
+        pistonController.keepExtended();
         input();
     }
 
@@ -85,11 +90,7 @@ public class Compactor extends DeviceItemIO<CompactorRecipe> {
     protected void processEnd() throws Exception {
         if(output()){
             super.processEnd();
-            SQLVector3i vec = xyz.value();
-            Block piston = world.getBlockAt(vec.x,vec.y,vec.z);
-            Piston pdat = (Piston) piston.getBlockData();
-            pdat.setExtended(false);
-            piston.setBlockData(pdat);
+            pistonController.attemptRetract();
         }
     }
 

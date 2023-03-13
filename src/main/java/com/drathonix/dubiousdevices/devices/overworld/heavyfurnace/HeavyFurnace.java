@@ -18,10 +18,10 @@ import com.vicious.viciouslibkit.block.blockinstance.BlockInstanceSolid;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockChunkDataHandler;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
 import com.vicious.viciouslibkit.item.ItemStackHelper;
-import com.vicious.viciouslibkit.util.ChunkPos;
 import com.vicious.viciouslibkit.util.LibKitUtil;
 import com.vicious.viciouslibkit.util.WorldUtil;
 import com.vicious.viciouslibkit.util.interfaces.INotifier;
+import com.vicious.viciouslibkit.util.vector.ChunkPos;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -150,7 +150,7 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
         else{
             if (!consumeFuel()) {
                 removeFromTicker();
-                timer = 0;
+                timer.reset();
                 return;
             }
         }
@@ -165,11 +165,11 @@ public class HeavyFurnace extends DeviceItemIO<MetalSmeltingRecipe> implements I
     }
 
     @Override
-    protected void process() {
+    protected void process() throws Exception{
         if(fuelTicksRemaining == 0) {
             if (!consumeFuel()) {
                 removeFromTicker();
-                timer = 0;
+                timer.reset();
             }
         }
         super.process();

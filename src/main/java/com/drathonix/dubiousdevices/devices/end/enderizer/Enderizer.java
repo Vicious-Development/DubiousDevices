@@ -3,7 +3,7 @@ package com.drathonix.dubiousdevices.devices.end.enderizer;
 import com.vicious.viciouslibkit.block.BlockTemplate;
 import com.vicious.viciouslibkit.block.blockinstance.BlockInstance;
 import com.vicious.viciouslibkit.data.provided.multiblock.MultiBlockInstance;
-import com.vicious.viciouslibkit.util.ChunkPos;
+import com.vicious.viciouslibkit.util.vector.ChunkPos;
 import org.bukkit.Axis;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -15,8 +15,8 @@ import org.bukkit.block.data.type.Slab;
 import java.util.UUID;
 
 public class Enderizer extends MultiBlockInstance {
-    public Enderizer(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, UUID id) {
-        super(mbType, w, l, dir, flipped, id);
+    public Enderizer(Class<? extends MultiBlockInstance> mbType, World w, Location l, BlockFace dir, boolean flipped, boolean upsidedown, UUID id) {
+        super(mbType, w, l, dir, flipped, upsidedown,id);
     }
 
     public Enderizer(Class<? extends MultiBlockInstance> type, World w, UUID id, ChunkPos cpos) {
