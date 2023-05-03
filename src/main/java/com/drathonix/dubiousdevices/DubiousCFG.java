@@ -1,11 +1,11 @@
 package com.drathonix.dubiousdevices;
 
 import com.drathonix.dubiousdevices.util.DubiousDirectories;
-import com.vicious.viciouslib.configuration.JSONConfig;
 import com.vicious.viciouslib.database.tracking.values.TrackableObject;
+import com.vicious.viciouslib.persistence.storage.aunotamations.Save;
 
 
-public class DubiousCFG extends JSONConfig {
+public class DubiousCFG  {
     private static DubiousCFG instance;
     public static DubiousCFG getInstance() {
         if(instance == null) instance = new DubiousCFG();
